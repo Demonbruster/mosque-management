@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+.bun/
+
+# Environment
+.env
+.env.local
+.env.*.local
+.dev.vars
+
+# Build output
+dist/
+.output/
+build/
+
+# Cloudflare
+.wrangler/
+.mf/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+
+# Drizzle
+drizzle/meta/
+
+# Coverage
+coverage/
+
+# Firebase
+mosque-management-sys-firebase-adminsdk-fbsvc-ac24d1168a.json

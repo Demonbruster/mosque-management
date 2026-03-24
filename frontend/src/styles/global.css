@@ -1,0 +1,38 @@
+/* ============================================
+   Global Styles — Mosque Management System
+   ============================================ */
+
+@import "@mantine/core/styles.css";
+
+:root {
+  --mms-primary: #1b7a4e;
+  --mms-primary-light: #2da86b;
+  --mms-accent: #d4a843;
+  --mms-bg-dark: #0f1923;
+  --mms-bg-card: #162332;
+  --mms-text: #e8edf3;
+  --mms-text-muted: #8899aa;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Smooth page transitions */
+.page-enter {
+  opacity: 0;
+  transform: translateY(8px);
+}
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms ease, transform 300ms ease;
+}

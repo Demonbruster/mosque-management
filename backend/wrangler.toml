@@ -1,0 +1,22 @@
+name = "mms-backend"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+
+# ---- Development ----
+[dev]
+port = 8787
+
+# ---- Environment Variables (Secrets — set via `wrangler secret put`) ----
+# These are listed here for documentation; actual values are stored as secrets.
+# Run: wrangler secret put DATABASE_URL
+# Run: wrangler secret put FIREBASE_PROJECT_ID
+# Run: wrangler secret put FIREBASE_CLIENT_EMAIL
+# Run: wrangler secret put FIREBASE_PRIVATE_KEY
+# Run: wrangler secret put TWILIO_ACCOUNT_SID
+# Run: wrangler secret put TWILIO_AUTH_TOKEN
+# Run: wrangler secret put TWILIO_WHATSAPP_NUMBER
+# Run: wrangler secret put CORS_ORIGIN
+
+[vars]
+ENVIRONMENT = "production"

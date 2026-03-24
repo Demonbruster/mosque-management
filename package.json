@@ -1,0 +1,30 @@
+{
+  "name": "mosque-management-system",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Multi-tenant SaaS Mosque Management System",
+  "workspaces": [
+    "packages/*",
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "dev": "bun run --filter '*' dev",
+    "dev:frontend": "bun run --filter frontend dev",
+    "dev:backend": "bun run --filter backend dev",
+    "build": "bun run --filter '*' build",
+    "build:frontend": "bun run --filter frontend build",
+    "build:backend": "bun run --filter backend build",
+    "typecheck": "bun run --filter '*' typecheck",
+    "lint": "bun run --filter '*' lint",
+    "db:generate": "bun run --filter backend db:generate",
+    "db:migrate": "bun run --filter backend db:migrate",
+    "db:push": "bun run --filter backend db:push",
+    "db:studio": "bun run --filter backend db:studio",
+    "deploy:workers": "cd backend && bunx wrangler deploy",
+    "deploy:pages": "cd frontend && bun run build && bunx wrangler pages deploy dist --project-name=mms-frontend"
+  },
+  "dependencies": {
+    "@types/node": "^25.5.0"
+  }
+}
