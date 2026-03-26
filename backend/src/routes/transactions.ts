@@ -2,23 +2,26 @@
 // Transactions API Routes
 // ============================================
 
-import { Hono } from "hono";
-import { eq, sql, and } from "drizzle-orm";
-import type { Env } from "../db/client";
-import { createDb } from "../db/client";
-import { transactions, fundCategories } from "../db/schema";
-import { firebaseAuth, requireRole } from "../middleware/firebase-auth";
+import { Hono } from 'hono';
+import { eq, sql, and } from 'drizzle-orm';
+import type { Env } from '../db/client';
+import { createDb } from '../db/client';
+import { transactions, fundCategories } from '../db/schema';
+import { firebaseAuth, requireRole } from '../middleware/firebase-auth';
 
-const transactionsRoute = new Hono<{ Bindings: Env }>();
+const transactionsRoute = new Hono<{
+  Bindings: Env;
+  Variables: { user: import('../middleware/firebase-auth').AuthUser };
+}>();
 
 // ---- Public endpoint (no auth) for dashboard ----
 
-transactionsRoute.get("/summary", async (c) => {
+transactionsRoute.get('/summary', async (c) => {
   const db = createDb(c.env.DATABASE_URL);
-  const tenantId = c.req.query("tenant_id");
+  const tenantId = c.req.query('tenant_id');
 
   if (!tenantId) {
-    return c.json({ success: false, error: "tenant_id is required" }, 400);
+    return c.json({ success: false, error: 'tenant_id is required' }, 400);
   }
 
   // Join with fund_categories to group by fund name
@@ -31,12 +34,7 @@ transactionsRoute.get("/summary", async (c) => {
     })
     .from(transactions)
     .innerJoin(fundCategories, eq(transactions.fund_id, fundCategories.id))
-    .where(
-      and(
-        eq(transactions.tenant_id, tenantId),
-        eq(transactions.status, "Approved")
-      )
-    )
+    .where(and(eq(transactions.tenant_id, tenantId), eq(transactions.status, 'Approved')))
     .groupBy(fundCategories.fund_name, fundCategories.compliance_type);
 
   return c.json({ success: true, data: result });
@@ -44,12 +42,12 @@ transactionsRoute.get("/summary", async (c) => {
 
 // ---- Protected routes ----
 
-transactionsRoute.use("/*", firebaseAuth());
+transactionsRoute.use('/*', firebaseAuth());
 
 // GET /api/transactions — List transactions for the tenant
-transactionsRoute.get("/", async (c) => {
+transactionsRoute.get('/', async (c) => {
   const db = createDb(c.env.DATABASE_URL);
-  const user = c.get("user");
+  const user = c.get('user');
 
   const result = await db
     .select()
@@ -61,10 +59,10 @@ transactionsRoute.get("/", async (c) => {
 });
 
 // POST /api/transactions — Create a transaction (Pending by default)
-transactionsRoute.post("/", requireRole("admin", "imam", "treasurer"), async (c) => {
+transactionsRoute.post('/', requireRole('admin', 'imam', 'treasurer'), async (c) => {
   const db = createDb(c.env.DATABASE_URL);
   const body = await c.req.json();
-  const user = c.get("user");
+  const user = c.get('user');
 
   const result = await db
     .insert(transactions)
@@ -72,7 +70,7 @@ transactionsRoute.post("/", requireRole("admin", "imam", "treasurer"), async (c)
       ...body,
       tenant_id: user.tenant_id,
       admin_id: user.uid,
-      status: "Pending",
+      status: 'Pending',
     })
     .returning();
 
@@ -80,42 +78,42 @@ transactionsRoute.post("/", requireRole("admin", "imam", "treasurer"), async (c)
 });
 
 // PATCH /api/transactions/:id/approve — Approve a transaction
-transactionsRoute.patch("/:id/approve", requireRole("admin", "imam"), async (c) => {
+transactionsRoute.patch('/:id/approve', requireRole('admin', 'imam'), async (c) => {
   const db = createDb(c.env.DATABASE_URL);
-  const id = c.req.param("id");
+  const id = c.req.param('id');
 
   const result = await db
     .update(transactions)
     .set({
-      status: "Approved",
+      status: 'Approved',
       updated_at: new Date(),
     })
-    .where(eq(transactions.id, id))
+    .where(eq(transactions.id, id!))
     .returning();
 
   if (result.length === 0) {
-    return c.json({ success: false, error: "Transaction not found" }, 404);
+    return c.json({ success: false, error: 'Transaction not found' }, 404);
   }
 
   return c.json({ success: true, data: result[0] });
 });
 
 // PATCH /api/transactions/:id/reject — Reject a transaction
-transactionsRoute.patch("/:id/reject", requireRole("admin", "imam"), async (c) => {
+transactionsRoute.patch('/:id/reject', requireRole('admin', 'imam'), async (c) => {
   const db = createDb(c.env.DATABASE_URL);
-  const id = c.req.param("id");
+  const id = c.req.param('id');
 
   const result = await db
     .update(transactions)
     .set({
-      status: "Rejected",
+      status: 'Rejected',
       updated_at: new Date(),
     })
-    .where(eq(transactions.id, id))
+    .where(eq(transactions.id, id!))
     .returning();
 
   if (result.length === 0) {
-    return c.json({ success: false, error: "Transaction not found" }, 404);
+    return c.json({ success: false, error: 'Transaction not found' }, 404);
   }
 
   return c.json({ success: true, data: result[0] });

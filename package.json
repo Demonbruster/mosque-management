@@ -9,22 +9,43 @@
     "frontend"
   ],
   "scripts": {
-    "dev": "bun run --filter '*' dev",
-    "dev:frontend": "bun run --filter frontend dev",
-    "dev:backend": "bun run --filter backend dev",
+    "dev": "bun run validate-env && bun run --filter '*' dev",
+    "dev:frontend": "bun run validate-env && bun run --filter frontend dev",
+    "dev:backend": "bun run validate-env && bun run --filter backend dev",
+    "validate-env": "bun run scripts/validate-env.ts",
     "build": "bun run --filter '*' build",
     "build:frontend": "bun run --filter frontend build",
     "build:backend": "bun run --filter backend build",
     "typecheck": "bun run --filter '*' typecheck",
     "lint": "bun run --filter '*' lint",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "db:generate": "bun run --filter backend db:generate",
     "db:migrate": "bun run --filter backend db:migrate",
     "db:push": "bun run --filter backend db:push",
     "db:studio": "bun run --filter backend db:studio",
     "deploy:workers": "cd backend && bunx wrangler deploy",
-    "deploy:pages": "cd frontend && bun run build && bunx wrangler pages deploy dist --project-name=mms-frontend"
+    "deploy:pages": "cd frontend && bun run build && bunx wrangler pages deploy dist --project-name=mms-frontend",
+    "prepare": "husky"
   },
   "dependencies": {
     "@types/node": "^25.5.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "eslint": "^10.1.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "globals": "^17.4.0",
+    "husky": "^9.1.7",
+    "jsdom": "^29.0.1",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.8.1",
+    "typescript-eslint": "^8.57.2",
+    "vitest": "^4.1.1"
   }
 }

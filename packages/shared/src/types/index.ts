@@ -1,4 +1,4 @@
-export type { Person, PersonCategory, CreatePersonInput, UpdatePersonInput } from "./person";
+export type { Person, PersonCategory, CreatePersonInput, UpdatePersonInput } from './person';
 export type {
   Household,
   PersonHouseholdLink,
@@ -8,7 +8,7 @@ export type {
   CreateHouseholdInput,
   CreatePersonHouseholdLinkInput,
   CreatePersonRelationshipInput,
-} from "./household";
+} from './household';
 export type {
   FundCategory,
   FundCategoryType,
@@ -20,27 +20,28 @@ export type {
   CreateFundCategoryInput,
   CreateTransactionInput,
   CreateSubscriptionInput,
-} from "./transaction";
+} from './transaction';
 export type {
   FixedAsset,
   TenancyAgreement,
   AgreementStatus,
   UtensilInventory,
   UtensilRental,
-} from "./assets";
+} from './assets';
 export type {
   ProjectRoadmap,
   ProjectPhase,
   MeetingLog,
   MeetingType,
   ManagementCommittee,
-} from "./governance";
-export type { EmployeePayroll, EmployeeLoan } from "./hr";
+} from './governance';
+export type { EmployeePayroll, EmployeeLoan } from './hr';
 export type {
   MadrasaClass,
   StudentEnrollment,
   EnrollmentStatus,
   LifeEventRecord,
   EventType,
-} from "./education";
-export type { CommunicationLog, DeliveryStatus } from "./communication";
+} from './education';
+export type { CommunicationLog, DeliveryStatus } from './communication';
+export type { Tenant, CreateTenantInput, UpdateTenantInput } from './tenant';

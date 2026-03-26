@@ -2,21 +2,24 @@
 // Households API Routes
 // ============================================
 
-import { Hono } from "hono";
-import { eq } from "drizzle-orm";
-import type { Env } from "../db/client";
-import { createDb } from "../db/client";
-import { households, personHouseholdLinks } from "../db/schema";
-import { firebaseAuth, requireRole } from "../middleware/firebase-auth";
+import { Hono } from 'hono';
+import { eq } from 'drizzle-orm';
+import type { Env } from '../db/client';
+import { createDb } from '../db/client';
+import { households, personHouseholdLinks } from '../db/schema';
+import { firebaseAuth, requireRole } from '../middleware/firebase-auth';
 
-const householdsRoute = new Hono<{ Bindings: Env }>();
+const householdsRoute = new Hono<{
+  Bindings: Env;
+  Variables: { user: import('../middleware/firebase-auth').AuthUser };
+}>();
 
-householdsRoute.use("/*", firebaseAuth());
+householdsRoute.use('/*', firebaseAuth());
 
 // GET /api/households — List households for the tenant
-householdsRoute.get("/", async (c) => {
+householdsRoute.get('/', async (c) => {
   const db = createDb(c.env.DATABASE_URL);
-  const user = c.get("user");
+  const user = c.get('user');
 
   const result = await db
     .select()
@@ -27,17 +30,14 @@ householdsRoute.get("/", async (c) => {
 });
 
 // GET /api/households/:id — Get household with members
-householdsRoute.get("/:id", async (c) => {
+householdsRoute.get('/:id', async (c) => {
   const db = createDb(c.env.DATABASE_URL);
-  const id = c.req.param("id");
+  const id = c.req.param('id');
 
-  const household = await db
-    .select()
-    .from(households)
-    .where(eq(households.id, id));
+  const household = await db.select().from(households).where(eq(households.id, id));
 
   if (household.length === 0) {
-    return c.json({ success: false, error: "Household not found" }, 404);
+    return c.json({ success: false, error: 'Household not found' }, 404);
   }
 
   // Fetch active members linked to this household
@@ -53,10 +53,10 @@ householdsRoute.get("/:id", async (c) => {
 });
 
 // POST /api/households — Create a household (admin/imam only)
-householdsRoute.post("/", requireRole("admin", "imam"), async (c) => {
+householdsRoute.post('/', requireRole('admin', 'imam'), async (c) => {
   const db = createDb(c.env.DATABASE_URL);
   const body = await c.req.json();
-  const user = c.get("user");
+  const user = c.get('user');
 
   const result = await db
     .insert(households)

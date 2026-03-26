@@ -2,7 +2,7 @@
 // Login Page
 // ============================================
 
-import { useState } from "react";
+import { useState } from 'react';
 import {
   Container,
   Paper,
@@ -14,13 +14,13 @@ import {
   Text,
   Alert,
   Center,
-} from "@mantine/core";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../lib/auth-context";
+} from '@mantine/core';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../lib/auth-context';
 
 export function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { signIn, user } = useAuth();
@@ -28,7 +28,7 @@ export function LoginPage() {
 
   // Redirect if already signed in
   if (user) {
-    navigate("/", { replace: true });
+    navigate('/', { replace: true });
     return null;
   }
 
@@ -39,9 +39,13 @@ export function LoginPage() {
 
     try {
       await signIn(email, password);
-      navigate("/");
-    } catch (err: any) {
-      setError(err.message || "Sign in failed. Please check your credentials.");
+      navigate('/');
+    } catch (err: Error | unknown) {
+      if (err instanceof Error) {
+        setError(err.message || 'Sign in failed. Please check your credentials.');
+      } else {
+        setError('Sign in failed. Please check your credentials.');
+      }
     } finally {
       setLoading(false);
     }
@@ -81,13 +85,7 @@ export function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.currentTarget.value)}
               />
-              <Button
-                id="login-submit"
-                type="submit"
-                fullWidth
-                color="green"
-                loading={loading}
-              >
+              <Button id="login-submit" type="submit" fullWidth color="green" loading={loading}>
                 Sign In
               </Button>
             </Stack>
