@@ -14,13 +14,16 @@ const transactionsRoute = new Hono<{
   Variables: { user: import('../middleware/firebase-auth').AuthUser };
 }>();
 
-// ---- Public endpoint (no auth) for dashboard ----
+transactionsRoute.use('/*', firebaseAuth());
 
+// ---- Protected routes ----
+
+// GET /api/transactions/summary — Dashboard summary
 transactionsRoute.get('/summary', async (c) => {
   const db = createDb(c.env.DATABASE_URL);
-  const tenantId = c.req.query('tenant_id');
+  const user = c.get('user');
 
-  if (!tenantId) {
+  if (!user.tenant_id) {
     return c.json({ success: false, error: 'tenant_id is required' }, 400);
   }
 
@@ -34,15 +37,11 @@ transactionsRoute.get('/summary', async (c) => {
     })
     .from(transactions)
     .innerJoin(fundCategories, eq(transactions.fund_id, fundCategories.id))
-    .where(and(eq(transactions.tenant_id, tenantId), eq(transactions.status, 'Approved')))
+    .where(and(eq(transactions.tenant_id, user.tenant_id), eq(transactions.status, 'Approved')))
     .groupBy(fundCategories.fund_name, fundCategories.compliance_type);
 
   return c.json({ success: true, data: result });
 });
-
-// ---- Protected routes ----
-
-transactionsRoute.use('/*', firebaseAuth());
 
 // GET /api/transactions — List transactions for the tenant
 transactionsRoute.get('/', async (c) => {
@@ -82,13 +81,15 @@ transactionsRoute.patch('/:id/approve', requireRole('admin', 'imam'), async (c) 
   const db = createDb(c.env.DATABASE_URL);
   const id = c.req.param('id');
 
+  const user = c.get('user');
+
   const result = await db
     .update(transactions)
     .set({
       status: 'Approved',
       updated_at: new Date(),
     })
-    .where(eq(transactions.id, id!))
+    .where(and(eq(transactions.id, id!), eq(transactions.tenant_id, user.tenant_id!)))
     .returning();
 
   if (result.length === 0) {
@@ -103,13 +104,15 @@ transactionsRoute.patch('/:id/reject', requireRole('admin', 'imam'), async (c) =
   const db = createDb(c.env.DATABASE_URL);
   const id = c.req.param('id');
 
+  const user = c.get('user');
+
   const result = await db
     .update(transactions)
     .set({
       status: 'Rejected',
       updated_at: new Date(),
     })
-    .where(eq(transactions.id, id!))
+    .where(and(eq(transactions.id, id!), eq(transactions.tenant_id, user.tenant_id!)))
     .returning();
 
   if (result.length === 0) {

@@ -3,7 +3,7 @@
 // ============================================
 
 import { Hono } from 'hono';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import type { Env } from '../db/client';
 import { createDb } from '../db/client';
 import { households, personHouseholdLinks } from '../db/schema';
@@ -34,7 +34,12 @@ householdsRoute.get('/:id', async (c) => {
   const db = createDb(c.env.DATABASE_URL);
   const id = c.req.param('id');
 
-  const household = await db.select().from(households).where(eq(households.id, id));
+  const user = c.get('user');
+
+  const household = await db
+    .select()
+    .from(households)
+    .where(and(eq(households.id, id), eq(households.tenant_id, user.tenant_id!)));
 
   if (household.length === 0) {
     return c.json({ success: false, error: 'Household not found' }, 404);
