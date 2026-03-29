@@ -21,6 +21,8 @@ import {
   whatsappRoutes,
   tenantsRoutes,
   adminUsersRoutes,
+  personHouseholdLinksRoutes,
+  personRelationshipsRoutes,
 } from './routes';
 
 // ---- App ----
@@ -60,6 +62,8 @@ app.route('/api/transactions', transactionsRoutes);
 app.route('/api/whatsapp', whatsappRoutes);
 app.route('/api/tenants', tenantsRoutes);
 app.route('/api/admin/users', adminUsersRoutes);
+app.route('/api/person-household-links', personHouseholdLinksRoutes);
+app.route('/api/person-relationships', personRelationshipsRoutes);
 
 // ---- Root ----
 

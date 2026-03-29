@@ -15,7 +15,7 @@ export function Layout() {
 
   const navItems = [
     { label: 'Dashboard', path: '/' },
-    { label: 'Persons', path: '/persons', auth: true },
+    { label: 'Members', path: '/members', auth: true },
     { label: 'Households', path: '/households', auth: true },
     { label: 'Transactions', path: '/transactions', auth: true },
     { label: 'User Admin', path: '/admin/users', auth: true, roles: ['admin'] },
@@ -74,7 +74,9 @@ export function Layout() {
             <NavLink
               key={item.path}
               label={item.label}
-              active={location.pathname === item.path}
+              active={
+                location.pathname === item.path || location.pathname.startsWith(`${item.path}/`)
+              }
               onClick={() => {
                 navigate(item.path);
                 toggle();

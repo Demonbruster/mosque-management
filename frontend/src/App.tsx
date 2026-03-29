@@ -11,6 +11,10 @@ import { Layout } from './components/Layout';
 import { DashboardPage } from './pages/DashboardPage';
 import { LoginPage } from './pages/LoginPage';
 import { AdminUsersPage } from './pages/AdminUsersPage';
+import { MembersPage } from './pages/MembersPage';
+import { MemberDetailPage } from './pages/MemberDetailPage';
+import { HouseholdsPage } from './pages/HouseholdsPage';
+import { HouseholdDetailPage } from './pages/HouseholdDetailPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 const theme = createTheme({
@@ -43,6 +47,41 @@ export function App() {
               <Route element={<Layout />}>
                 <Route path="/" element={<DashboardPage />} />
                 <Route path="/login" element={<LoginPage />} />
+
+                {/* CRM Routes - Accessible by all logged in users */}
+                <Route
+                  path="/members"
+                  element={
+                    <ProtectedRoute>
+                      <MembersPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/members/:id"
+                  element={
+                    <ProtectedRoute>
+                      <MemberDetailPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/households"
+                  element={
+                    <ProtectedRoute>
+                      <HouseholdsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/households/:id"
+                  element={
+                    <ProtectedRoute>
+                      <HouseholdDetailPage />
+                    </ProtectedRoute>
+                  }
+                />
+
                 <Route
                   path="/admin/users"
                   element={
