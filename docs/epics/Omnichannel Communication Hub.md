@@ -1,5 +1,6 @@
 Because WhatsApp is the primary communication channel for your congregation, this epic focuses on building a scalable, automated, and ban-proof messaging engine that integrates directly with your CRM.
 Here is the breakdown of requirements to hand over to your development team:
+
 1. Official WhatsApp Business API Infrastructure
 
 - To ensure system stability and protect the mosque's reputation, the communication hub must be built exclusively on the official WhatsApp Business API (via a provider like Twilio).
