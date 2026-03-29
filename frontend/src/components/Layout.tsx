@@ -2,10 +2,10 @@
 // App Shell Layout — Mantine
 // ============================================
 
-import { AppShell, Burger, Group, NavLink, Title, Text, Avatar } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
-import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "../lib/auth-context";
+import { AppShell, Burger, Group, NavLink, Title, Text, Avatar } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../lib/auth-context';
 
 export function Layout() {
   const [opened, { toggle }] = useDisclosure();
@@ -14,10 +14,11 @@ export function Layout() {
   const { user, role, signOut } = useAuth();
 
   const navItems = [
-    { label: "Dashboard", path: "/" },
-    { label: "Persons", path: "/persons", auth: true },
-    { label: "Households", path: "/households", auth: true },
-    { label: "Transactions", path: "/transactions", auth: true },
+    { label: 'Dashboard', path: '/' },
+    { label: 'Persons', path: '/persons', auth: true },
+    { label: 'Households', path: '/households', auth: true },
+    { label: 'Transactions', path: '/transactions', auth: true },
+    { label: 'User Admin', path: '/admin/users', auth: true, roles: ['admin'] },
   ];
 
   return (
@@ -25,7 +26,7 @@ export function Layout() {
       header={{ height: 60 }}
       navbar={{
         width: 260,
-        breakpoint: "sm",
+        breakpoint: 'sm',
         collapsed: { mobile: !opened },
       }}
       padding="md"
@@ -52,8 +53,8 @@ export function Layout() {
               <Text
                 size="sm"
                 c="blue"
-                style={{ cursor: "pointer" }}
-                onClick={() => navigate("/login")}
+                style={{ cursor: 'pointer' }}
+                onClick={() => navigate('/login')}
               >
                 Sign In
               </Text>
@@ -64,7 +65,11 @@ export function Layout() {
 
       <AppShell.Navbar p="md">
         {navItems
-          .filter((item) => !item.auth || user)
+          .filter((item) => {
+            if (item.auth && !user) return false;
+            if (item.roles && (!role || !item.roles.includes(role))) return false;
+            return true;
+          })
           .map((item) => (
             <NavLink
               key={item.path}
@@ -81,7 +86,7 @@ export function Layout() {
             label="Sign Out"
             onClick={async () => {
               await signOut();
-              navigate("/");
+              navigate('/');
             }}
             c="red"
             mt="auto"

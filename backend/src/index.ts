@@ -20,6 +20,7 @@ import {
   transactionsRoutes,
   whatsappRoutes,
   tenantsRoutes,
+  adminUsersRoutes,
 } from './routes';
 
 // ---- App ----
@@ -58,6 +59,7 @@ app.route('/api/households', householdsRoutes);
 app.route('/api/transactions', transactionsRoutes);
 app.route('/api/whatsapp', whatsappRoutes);
 app.route('/api/tenants', tenantsRoutes);
+app.route('/api/admin/users', adminUsersRoutes);
 
 // ---- Root ----
 

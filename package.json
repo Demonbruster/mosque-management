@@ -29,7 +29,8 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@types/node": "^25.5.0"
+    "@types/node": "^25.5.0",
+    "firebase-admin": "^13.7.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

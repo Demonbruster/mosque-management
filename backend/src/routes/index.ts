@@ -8,3 +8,4 @@ export { default as householdsRoutes } from './households';
 export { default as transactionsRoutes } from './transactions';
 export { default as whatsappRoutes } from './whatsapp';
 export { default as tenantsRoutes } from './tenants';
+export { adminUsersRoutes } from './admin-users';
