@@ -1,18 +1,31 @@
 // ============================================
 // Firebase Auth Middleware
 // ============================================
-// Verifies Firebase ID tokens on incoming requests.
-// Extracts user UID and custom claims (roles) and
-// attaches them to the Hono context.
+// Verifies Firebase ID tokens on incoming requests using jose.
+// Uses Google's public JWKS endpoint — no firebase-admin needed.
+// Compatible with Cloudflare Workers (Web Crypto / crypto.subtle).
 //
-// NOTE: Full Firebase Admin SDK is NOT available on
-// Cloudflare Workers. This uses manual JWT verification
-// against Google's public keys. For production, consider
-// using a lightweight JWT library compatible with Workers.
+// Token claims (role, tenant_id) must be set as Firebase custom
+// claims via a Node.js admin script (scripts/set-user-claims.ts).
 // ============================================
 
-import type { Context, Next } from "hono";
-import { HTTPException } from "hono/http-exception";
+import { jwtVerify, createRemoteJWKSet } from 'jose';
+import type { Context, Next } from 'hono';
+import { HTTPException } from 'hono/http-exception';
+
+// Google's Firebase JWKS endpoint URL
+const FIREBASE_JWKS_URL = new URL(
+  'https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com',
+);
+
+// Lazily created — deferred so vi.mock('jose') can intercept createRemoteJWKSet in tests
+let FIREBASE_JWKS: ReturnType<typeof createRemoteJWKSet> | null = null;
+function getJWKS() {
+  if (!FIREBASE_JWKS) {
+    FIREBASE_JWKS = createRemoteJWKSet(FIREBASE_JWKS_URL);
+  }
+  return FIREBASE_JWKS;
+}
 
 export interface AuthUser {
   uid: string;
@@ -22,44 +35,45 @@ export interface AuthUser {
 }
 
 /**
- * Firebase Auth middleware for Hono.
- * Verifies the Authorization: Bearer <token> header.
+ * Firebase Auth middleware for Hono on Cloudflare Workers.
+ * Verifies the Authorization: Bearer <token> header using RS256 + JWKS.
  *
- * In production, implement full JWT verification against
- * Google's JWKS endpoint:
- * https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com
+ * Requires `FIREBASE_PROJECT_ID` in Cloudflare Worker environment bindings (wrangler.toml).
  */
 export function firebaseAuth() {
   return async (c: Context, next: Next) => {
-    const authHeader = c.req.header("Authorization");
+    const authHeader = c.req.header('Authorization');
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (!authHeader?.startsWith('Bearer ')) {
       throw new HTTPException(401, {
-        message: "Missing or invalid Authorization header",
+        message: 'Missing or invalid Authorization header',
       });
     }
 
-    const token = authHeader.split("Bearer ")[1];
+    const token = authHeader.slice(7);
+    const projectId = c.env?.FIREBASE_PROJECT_ID ?? 'test-project';
 
     try {
-      // TODO: Implement full JWT verification for production
-      // For now, decode the token payload (base64) to extract claims.
-      // This is a SCAFFOLD — replace with proper verification.
-      const payload = JSON.parse(
-        atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))
-      );
+      const { payload } = await jwtVerify(token, getJWKS(), {
+        issuer: `https://securetoken.google.com/${projectId}`,
+        audience: projectId,
+        algorithms: ['RS256'],
+      });
+
+      // Custom claims set via Firebase Admin in scripts/set-user-claims.ts
+      const claims = payload as Record<string, unknown>;
 
       const user: AuthUser = {
-        uid: payload.user_id || payload.sub,
-        email: payload.email,
-        role: payload.role || payload.custom_claims?.role || "member",
-        tenant_id: payload.tenant_id || payload.custom_claims?.tenant_id,
+        uid: payload.sub!,
+        email: payload.email as string | undefined,
+        role: (claims.role as string) ?? 'member',
+        tenant_id: claims.tenant_id as string | undefined,
       };
 
-      c.set("user", user);
+      c.set('user', user);
       await next();
-    } catch (error) {
-      throw new HTTPException(401, { message: "Invalid or expired token" });
+    } catch {
+      throw new HTTPException(401, { message: 'Invalid or expired token' });
     }
   };
 }
@@ -70,15 +84,15 @@ export function firebaseAuth() {
  */
 export function requireRole(...roles: string[]) {
   return async (c: Context, next: Next) => {
-    const user = c.get("user") as AuthUser | undefined;
+    const user = c.get('user') as AuthUser | undefined;
 
     if (!user) {
-      throw new HTTPException(401, { message: "Authentication required" });
+      throw new HTTPException(401, { message: 'Authentication required' });
     }
 
-    if (!roles.includes(user.role || "")) {
+    if (!roles.includes(user.role ?? '')) {
       throw new HTTPException(403, {
-        message: `Insufficient permissions. Required role: ${roles.join(" or ")}`,
+        message: `Insufficient permissions. Required role: ${roles.join(' or ')}`,
       });
     }
 

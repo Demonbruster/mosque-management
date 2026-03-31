@@ -7,15 +7,15 @@ import { eq } from 'drizzle-orm';
 import type { Env } from '../db/client';
 import { createDb } from '../db/client';
 import { tenants, fundCategories } from '../db/schema';
-import { firebaseAuth, requireRole } from '../middleware/firebase-auth';
+import { requireRole } from '../middleware/firebase-auth';
+import type { AuthUser } from '../middleware/firebase-auth';
 
-const tenantsRoute = new Hono<{
-  Bindings: Env;
-  Variables: { user: import('../middleware/firebase-auth').AuthUser };
-}>();
+type Variables = { user: AuthUser; tenantId: string };
+
+const tenantsRoute = new Hono<{ Bindings: Env; Variables: Variables }>();
 
 // All tenant management requires admin role
-tenantsRoute.use('/*', firebaseAuth(), requireRole('admin'));
+tenantsRoute.use('/*', requireRole('admin'));
 
 // GET /api/tenants — List all tenants
 tenantsRoute.get('/', async (c) => {
@@ -47,13 +47,12 @@ tenantsRoute.post('/', async (c) => {
   }
 
   try {
-    // 1. Create the tenant
     const [newTenant] = await db
       .insert(tenants)
       .values({ ...body, is_active: true })
       .returning();
 
-    // 2. Seed default fund categories for the new tenant
+    // Seed default fund categories for the new tenant
     const defaultCategories: (typeof fundCategories.$inferInsert)[] = [
       {
         tenant_id: newTenant.id,
@@ -79,7 +78,6 @@ tenantsRoute.post('/', async (c) => {
 
     return c.json({ success: true, data: newTenant }, 201);
   } catch (error) {
-    // Handle unique constraint violation on slug
     const e = error as { code?: string };
     if (e.code === '23505') {
       return c.json({ success: false, error: 'Tenant with this slug already exists' }, 409);
