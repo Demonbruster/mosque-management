@@ -1,7 +1,7 @@
 import { Button, Checkbox, Grid, Group, Select, TextInput } from '@mantine/core';
 import React, { useState } from 'react';
 import { genderEnum, personCategoryEnum } from '../../../../backend/src/db/schema';
-import { existingUser } from '../../../mockdata/userRequests';
+import { existingUser, userRequests } from '../../../mockdata/userRequests';
 import { useForm } from '@mantine/form';
 
 export const UserDetailsChangeRequest = () => {
@@ -21,6 +21,14 @@ export const UserDetailsChangeRequest = () => {
       whatsappOptIn: userData.whatsappOptIn,
       isActive: userData.isActive,
     },
+    validate: {
+      firstName: (value) => (value.length < 2 ? 'First name must be at least 2 characters' : null),
+      lastName: (value) => (value.length < 2 ? 'Last name must be at least 2 characters' : null),
+      email: (value) => (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? null : 'Invalid email'),
+      phoneNumber: (value) =>
+        value.length < 10 ? 'Phone number must be at least 10 digits' : null,
+      nationalId: (value) => (value.length < 10 ? 'National ID must be at least 10 digits' : null),
+    },
   });
 
   const genderOptions = genderEnum.enumValues.map((gender) => ({
@@ -32,6 +40,28 @@ export const UserDetailsChangeRequest = () => {
     value: category,
     label: category.charAt(0).toUpperCase() + category.slice(1),
   }));
+
+  const handleSubmit = (values: typeof form.values) => {
+    try {
+      userRequests.push({
+        firstName: values.firstName,
+        lastName: values.lastName,
+        email: values.email,
+        phoneNumber: values.phoneNumber,
+        gender: values.gender,
+        category: values.category,
+        nationalId: values.nationalId,
+        notes: values.notes,
+        whatsappOptIn: values.whatsappOptIn,
+        isActive: values.isActive,
+        id: userRequests.length + 1,
+      });
+      setChangeRequest(false);
+      form.reset();
+    } catch (error) {
+      console.log('Error adding request', error);
+    }
+  };
 
   return (
     <>
@@ -135,11 +165,7 @@ export const UserDetailsChangeRequest = () => {
             </Grid.Col>
 
             <Grid.Col span={6}>
-              <form
-                onSubmit={form.onSubmit((values) => {
-                  console.log(values);
-                })}
-              >
+              <form onSubmit={form.onSubmit((values) => handleSubmit(values))}>
                 <TextInput
                   label="First Name"
                   placeholder="First Name"
