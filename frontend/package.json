@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@mantine/core": "^7.15.0",
+    "@mantine/form": "^8.3.18",
     "@mantine/hooks": "^7.15.0",
     "@mms/shared": "workspace:*",
     "@tabler/icons-react": "^3.41.1",

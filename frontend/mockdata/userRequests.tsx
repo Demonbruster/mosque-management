@@ -1,0 +1,42 @@
+export const userRequests = [
+  {
+    id: 1,
+    firstName: 'John',
+    lastName: 'Doe',
+    email: 'test@gmail123.com',
+    phoneNumber: '1234567890',
+    nationalId: '1234567890',
+    notes: 'Notes',
+    gender: 'male',
+    category: 'Member',
+    whatsappOptIn: true,
+    isActive: true,
+  },
+  {
+    id: 2,
+    firstName: 'Jane',
+    lastName: 'Doe',
+    email: 'test@gmail.com',
+    phoneNumber: '1234567890',
+    nationalId: '1234567890',
+    notes: 'Notes',
+    gender: 'female',
+    category: 'Member',
+    whatsappOptIn: false,
+    isActive: true,
+  },
+];
+
+export const existingUser = {
+  id: 1,
+  firstName: 'John',
+  lastName: 'Doe',
+  email: 'testUserNeedtoChange@gmail.com',
+  phoneNumber: '1234567890',
+  nationalId: '1234567890',
+  notes: 'Notes',
+  gender: 'male',
+  category: 'Member',
+  whatsappOptIn: true,
+  isActive: true,
+};
