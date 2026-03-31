@@ -1,11 +1,53 @@
 // ============================================
-// App Shell Layout — Mantine
+// App Shell Layout — Mantine (Collapsible Navigation)
 // ============================================
 
-import { AppShell, Burger, Group, NavLink, Title, Text, Avatar } from '@mantine/core';
+import {
+  AppShell,
+  Burger,
+  Group,
+  NavLink,
+  Title,
+  Text,
+  Avatar,
+  Menu,
+  ThemeIcon,
+  ScrollArea,
+  ActionIcon,
+} from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../lib/auth-context';
+import {
+  IconDashboard,
+  IconUsers,
+  IconHome,
+  IconMap,
+  IconFocus2,
+  IconReceipt2,
+  IconChecklist,
+  IconFileInvoice,
+  IconInbox,
+  IconBroadcast,
+  IconMessage2Plus,
+  IconUsersGroup,
+  IconBuildingStore,
+  IconBuildingEstate,
+  IconChairDirector,
+  IconHeartHandshake,
+  IconMapPins,
+  IconTarget,
+  IconBriefcase,
+  IconCertificate,
+  IconGavel,
+  IconBook,
+  IconSettings,
+  IconPlugConnected,
+  IconHistory,
+  IconLogout,
+  IconUserCircle,
+  IconPointFilled,
+} from '@tabler/icons-react';
 
 export function Layout() {
   const [opened, { toggle }] = useDisclosure();
@@ -13,47 +55,154 @@ export function Layout() {
   const location = useLocation();
   const { user, role, signOut } = useAuth();
 
-  const navItems = [
-    { label: 'Dashboard', path: '/' },
-    { label: 'Members', path: '/members', auth: true },
-    { label: 'Households', path: '/households', auth: true },
-    { label: 'Transactions', path: '/transactions', auth: true },
-    { label: 'User Admin', path: '/admin/users', auth: true, roles: ['admin'] },
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
+
+  const navGroups = [
+    {
+      label: 'Dashboard',
+      icon: IconDashboard,
+      path: '/',
+      isSingle: true,
+    },
+    {
+      label: 'Community & CRM',
+      icon: IconUsersGroup,
+      auth: true,
+      links: [
+        { label: 'Members', path: '/members', icon: IconUsers },
+        { label: 'Households', path: '/households', icon: IconHome },
+        { label: 'Mahalla Mapping', path: '/mahallas', icon: IconMap },
+        { label: 'Deduplication', path: '/deduplication', icon: IconFocus2 },
+      ],
+    },
+    {
+      label: 'Finance & Accounting',
+      icon: IconReceipt2,
+      auth: true,
+      links: [
+        { label: 'Ledger', path: '/ledger', icon: IconFileInvoice },
+        { label: 'Maker-Checker Queue', path: '/approvals', icon: IconChecklist },
+        { label: 'Digital Receipts', path: '/receipts', icon: IconReceipt2 },
+      ],
+    },
+    {
+      label: 'Communications',
+      icon: IconBroadcast,
+      auth: true,
+      links: [
+        { label: 'Inbox', path: '/inbox', icon: IconInbox },
+        { label: 'Broadcasts', path: '/broadcasts', icon: IconBroadcast },
+        { label: 'Audiences', path: '/audiences', icon: IconUsersGroup },
+        { label: 'Templates', path: '/templates', icon: IconMessage2Plus },
+      ],
+    },
+    {
+      label: 'Operations & Assets',
+      icon: IconBuildingStore,
+      auth: true,
+      links: [
+        { label: 'Fixed Assets', path: '/assets', icon: IconBuildingStore },
+        { label: 'Tenancy', path: '/tenancy', icon: IconBuildingEstate },
+        { label: 'Rentals', path: '/rentals', icon: IconChairDirector },
+        { label: 'Life Registry', path: '/life-registry', icon: IconHeartHandshake },
+      ],
+    },
+    {
+      label: 'Projects & Roadmap',
+      icon: IconTarget,
+      auth: true,
+      links: [
+        { label: 'Planning', path: '/planning', icon: IconMapPins },
+        { label: 'Capital Campaigns', path: '/campaigns', icon: IconTarget },
+      ],
+    },
+    {
+      label: 'HR & Governance',
+      icon: IconBriefcase,
+      auth: true,
+      links: [
+        { label: 'Staff', path: '/staff', icon: IconBriefcase },
+        { label: 'Committees', path: '/committees', icon: IconCertificate },
+        { label: 'Disputations', path: '/disputations', icon: IconGavel },
+        { label: 'Madrasa', path: '/madrasa', icon: IconBook },
+      ],
+    },
+    {
+      label: 'System Settings',
+      icon: IconSettings,
+      auth: true,
+      roles: ['admin'],
+      links: [
+        { label: 'Admin Users', path: '/admin/users', icon: IconSettings },
+        { label: 'Integrations', path: '/integrations', icon: IconPlugConnected },
+        { label: 'Audit Logs', path: '/audit-logs', icon: IconHistory },
+      ],
+    },
   ];
 
   return (
     <AppShell
       header={{ height: 60 }}
       navbar={{
-        width: 260,
-        breakpoint: 'sm',
+        width: 280,
+        breakpoint: 'md',
         collapsed: { mobile: !opened },
       }}
       padding="md"
+      bg="gray.0"
     >
-      <AppShell.Header>
+      <AppShell.Header bg="white">
         <Group h="100%" px="md" justify="space-between">
           <Group>
-            <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
-            <Title order={3} c="green.7">
-              🕌 MMS
-            </Title>
+            <Burger opened={opened} onClick={toggle} hiddenFrom="md" size="sm" />
+            <Group gap="xs" style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
+              <ThemeIcon variant="light" color="green" size="lg" radius="md">
+                <Text size="xl">🕌</Text>
+              </ThemeIcon>
+              <Title order={3} c="dark.8" style={{ fontWeight: 800 }}>
+                MMS
+              </Title>
+            </Group>
           </Group>
           <Group>
             {user ? (
-              <Group gap="xs">
-                <Avatar size="sm" color="green" radius="xl">
-                  {user.email?.charAt(0).toUpperCase()}
-                </Avatar>
-                <Text size="sm" c="dimmed">
-                  {role}
-                </Text>
-              </Group>
+              <Menu shadow="md" width={200} position="bottom-end">
+                <Menu.Target>
+                  <ActionIcon variant="subtle" color="gray" size="xl" radius="xl">
+                    <Avatar size="sm" color="green" radius="xl">
+                      {user.email?.charAt(0).toUpperCase()}
+                    </Avatar>
+                  </ActionIcon>
+                </Menu.Target>
+
+                <Menu.Dropdown>
+                  <Menu.Label>Logged in as</Menu.Label>
+                  <Menu.Item leftSection={<IconUserCircle size={14} />}>
+                    <Text size="sm" fw={500} truncate w={150}>
+                      {user.email}
+                    </Text>
+                    <Text size="xs" c="dimmed">
+                      Role: {role}
+                    </Text>
+                  </Menu.Item>
+                  <Menu.Divider />
+                  <Menu.Item
+                    color="red"
+                    leftSection={<IconLogout size={14} />}
+                    onClick={handleSignOut}
+                  >
+                    Sign Out
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
             ) : (
               <Text
                 size="sm"
                 c="blue"
-                style={{ cursor: 'pointer' }}
+                style={{ cursor: 'pointer', fontWeight: 500 }}
                 onClick={() => navigate('/login')}
               >
                 Sign In
@@ -63,41 +212,111 @@ export function Layout() {
         </Group>
       </AppShell.Header>
 
-      <AppShell.Navbar p="md">
-        {navItems
-          .filter((item) => {
-            if (item.auth && !user) return false;
-            if (item.roles && (!role || !item.roles.includes(role))) return false;
-            return true;
-          })
-          .map((item) => (
-            <NavLink
-              key={item.path}
-              label={item.label}
-              active={
-                location.pathname === item.path || location.pathname.startsWith(`${item.path}/`)
-              }
-              onClick={() => {
-                navigate(item.path);
-                toggle();
-              }}
-            />
-          ))}
-        {user && (
-          <NavLink
-            label="Sign Out"
-            onClick={async () => {
-              await signOut();
-              navigate('/');
-            }}
-            c="red"
-            mt="auto"
-          />
-        )}
+      <AppShell.Navbar p="0" bg="white">
+        <ScrollArea h="100%" type="scroll">
+          <Group px="md" py="xs" pb={0} mt="sm">
+            <Text size="xs" fw={600} c="dimmed" lts={1}>
+              MAIN MENU
+            </Text>
+          </Group>
+
+          <div style={{ padding: '8px' }}>
+            {navGroups
+              .filter((group) => {
+                if (group.auth && !user) return false;
+                if (group.roles && (!role || !group.roles.includes(role))) return false;
+                return true;
+              })
+              .map((group) => {
+                if (group.isSingle && group.path) {
+                  const isActive = location.pathname === group.path;
+                  return (
+                    <NavLink
+                      key={group.label}
+                      label={group.label}
+                      leftSection={<group.icon size="1.2rem" stroke={1.5} />}
+                      active={isActive}
+                      color="green"
+                      variant="light"
+                      onClick={() => {
+                        navigate(group.path!);
+                        if (opened) toggle();
+                      }}
+                      styles={(theme) => ({
+                        root: {
+                          borderRadius: theme.radius.sm,
+                          marginBottom: '4px',
+                          fontWeight: isActive ? 600 : 500,
+                        },
+                      })}
+                    />
+                  );
+                }
+
+                // Nested Navigation Link
+                const hasActiveChild = group.links?.some(
+                  (link) =>
+                    location.pathname === link.path ||
+                    location.pathname.startsWith(`${link.path}/`),
+                );
+
+                return (
+                  <NavLink
+                    key={group.label}
+                    label={group.label}
+                    leftSection={<group.icon size="1.2rem" stroke={1.5} />}
+                    defaultOpened={hasActiveChild} // Automatically expand if a child is active
+                    childrenOffset={28}
+                    styles={(theme) => ({
+                      root: {
+                        borderRadius: theme.radius.sm,
+                        marginBottom: '4px',
+                        fontWeight: hasActiveChild ? 600 : 500,
+                      },
+                    })}
+                  >
+                    {group.links?.map((link) => {
+                      const isActive =
+                        location.pathname === link.path ||
+                        location.pathname.startsWith(`${link.path}/`);
+                      return (
+                        <NavLink
+                          key={link.path}
+                          label={link.label}
+                          leftSection={
+                            <IconPointFilled
+                              size="0.6rem"
+                              style={{ opacity: isActive ? 1 : 0.3 }}
+                            />
+                          }
+                          active={isActive}
+                          color="green"
+                          variant="subtle"
+                          onClick={() => {
+                            navigate(link.path);
+                            if (opened) toggle();
+                          }}
+                          styles={(theme) => ({
+                            root: {
+                              borderRadius: theme.radius.sm,
+                              marginBottom: '2px',
+                              fontWeight: isActive ? 600 : 400,
+                            },
+                          })}
+                        />
+                      );
+                    })}
+                  </NavLink>
+                );
+              })}
+          </div>
+        </ScrollArea>
       </AppShell.Navbar>
 
       <AppShell.Main>
-        <Outlet />
+        <div style={{ minHeight: 'calc(100vh - 90px)' }}>
+          <Outlet />
+        </div>
       </AppShell.Main>
     </AppShell>
   );
