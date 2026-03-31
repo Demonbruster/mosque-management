@@ -15,6 +15,7 @@ import { MembersPage } from './pages/MembersPage';
 import { MemberDetailPage } from './pages/MemberDetailPage';
 import { HouseholdsPage } from './pages/HouseholdsPage';
 import { HouseholdDetailPage } from './pages/HouseholdDetailPage';
+import { PlaceholderPage } from './pages/PlaceholderPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 const theme = createTheme({
@@ -87,6 +88,189 @@ export function App() {
                   element={
                     <ProtectedRoute requiredRoles={['admin']}>
                       <AdminUsersPage />
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* --- Navigation Placeholder Routes --- */}
+                {/* Community & CRM */}
+                <Route
+                  path="/mahallas"
+                  element={
+                    <ProtectedRoute>
+                      <PlaceholderPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/deduplication"
+                  element={
+                    <ProtectedRoute>
+                      <PlaceholderPage />
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Finance & Accounting */}
+                <Route
+                  path="/ledger"
+                  element={
+                    <ProtectedRoute>
+                      <PlaceholderPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/approvals"
+                  element={
+                    <ProtectedRoute>
+                      <PlaceholderPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/receipts"
+                  element={
+                    <ProtectedRoute>
+                      <PlaceholderPage />
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Communications */}
+                <Route
+                  path="/inbox"
+                  element={
+                    <ProtectedRoute>
+                      <PlaceholderPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/broadcasts"
+                  element={
+                    <ProtectedRoute>
+                      <PlaceholderPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/audiences"
+                  element={
+                    <ProtectedRoute>
+                      <PlaceholderPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/templates"
+                  element={
+                    <ProtectedRoute>
+                      <PlaceholderPage />
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Operations & Assets */}
+                <Route
+                  path="/assets"
+                  element={
+                    <ProtectedRoute>
+                      <PlaceholderPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/tenancy"
+                  element={
+                    <ProtectedRoute>
+                      <PlaceholderPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/rentals"
+                  element={
+                    <ProtectedRoute>
+                      <PlaceholderPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/life-registry"
+                  element={
+                    <ProtectedRoute>
+                      <PlaceholderPage />
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Projects & Roadmap */}
+                <Route
+                  path="/planning"
+                  element={
+                    <ProtectedRoute>
+                      <PlaceholderPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/campaigns"
+                  element={
+                    <ProtectedRoute>
+                      <PlaceholderPage />
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* HR & Governance */}
+                <Route
+                  path="/staff"
+                  element={
+                    <ProtectedRoute>
+                      <PlaceholderPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/committees"
+                  element={
+                    <ProtectedRoute>
+                      <PlaceholderPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/disputations"
+                  element={
+                    <ProtectedRoute>
+                      <PlaceholderPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/madrasa"
+                  element={
+                    <ProtectedRoute>
+                      <PlaceholderPage />
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* System Settings (Admin only) */}
+                <Route
+                  path="/integrations"
+                  element={
+                    <ProtectedRoute requiredRoles={['admin']}>
+                      <PlaceholderPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/audit-logs"
+                  element={
+                    <ProtectedRoute requiredRoles={['admin']}>
+                      <PlaceholderPage />
                     </ProtectedRoute>
                   }
                 />
