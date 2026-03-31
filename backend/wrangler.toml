@@ -19,4 +19,13 @@ port = 8787
 # Run: wrangler secret put CORS_ORIGIN
 
 [vars]
-ENVIRONMENT = "production"
+ENVIRONMENT = "development"
+FIREBASE_PROJECT_ID = "mosque-management-sys"
+CORS_ORIGIN = "http://localhost:5173"
+
+# ---- Local dev overrides (wrangler dev reads these from .dev.vars) ----
+# Create a file called .dev.vars in /backend with:
+#   DATABASE_URL=postgresql://...
+#   TWILIO_ACCOUNT_SID=...
+#   TWILIO_AUTH_TOKEN=...
+#   TWILIO_WHATSAPP_NUMBER=whatsapp:+14155238886

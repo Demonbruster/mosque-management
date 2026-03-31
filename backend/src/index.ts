@@ -13,6 +13,9 @@ import { secureHeaders } from 'hono/secure-headers';
 import type { Env } from './db/client';
 import { corsMiddleware } from './middleware/cors';
 import { errorHandler } from './middleware/error-handler';
+import { firebaseAuth } from './middleware/firebase-auth';
+import { requireTenant } from './middleware/tenant';
+import type { AuthUser } from './middleware/firebase-auth';
 import {
   healthRoutes,
   personsRoutes,
@@ -25,9 +28,16 @@ import {
   personRelationshipsRoutes,
 } from './routes';
 
+// ---- Typed Hono context ----
+
+type Variables = {
+  user: AuthUser;
+  tenantId: string;
+};
+
 // ---- App ----
 
-const app = new Hono<{ Bindings: Env }>();
+const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
 // ---- Global Middleware ----
 
@@ -53,13 +63,26 @@ app.notFound((c) => {
   );
 });
 
-// ---- Routes ----
+// ---- Public Routes (no auth required) ----
 
 app.route('/api/health', healthRoutes);
+app.route('/api/whatsapp', whatsappRoutes); // Twilio inbound webhooks — no user auth
+
+// ---- Auth + Tenant scope for all protected routes ----
+
+app.use('/api/persons/*', firebaseAuth(), requireTenant());
+app.use('/api/households/*', firebaseAuth(), requireTenant());
+app.use('/api/transactions/*', firebaseAuth(), requireTenant());
+app.use('/api/tenants/*', firebaseAuth(), requireTenant());
+app.use('/api/admin/*', firebaseAuth(), requireTenant());
+app.use('/api/person-household-links/*', firebaseAuth(), requireTenant());
+app.use('/api/person-relationships/*', firebaseAuth(), requireTenant());
+
+// ---- Protected Routes ----
+
 app.route('/api/persons', personsRoutes);
 app.route('/api/households', householdsRoutes);
 app.route('/api/transactions', transactionsRoutes);
-app.route('/api/whatsapp', whatsappRoutes);
 app.route('/api/tenants', tenantsRoutes);
 app.route('/api/admin/users', adminUsersRoutes);
 app.route('/api/person-household-links', personHouseholdLinksRoutes);

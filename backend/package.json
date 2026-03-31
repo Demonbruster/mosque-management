@@ -18,7 +18,8 @@
     "@neondatabase/serverless": "^0.10.0",
     "drizzle-orm": "^0.38.0",
     "firebase-admin": "^13.7.0",
-    "hono": "^4.6.0"
+    "hono": "^4.6.0",
+    "jose": "^6.2.2"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20241205.0",

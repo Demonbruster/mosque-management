@@ -7,22 +7,19 @@ import { eq, and, or } from 'drizzle-orm';
 import type { Env } from '../db/client';
 import { createDb } from '../db/client';
 import { personRelationships, persons } from '../db/schema';
-import { firebaseAuth, requireRole } from '../middleware/firebase-auth';
+import { requireRole } from '../middleware/firebase-auth';
+import type { AuthUser } from '../middleware/firebase-auth';
 
-const personRelationshipsRoute = new Hono<{
-  Bindings: Env;
-  Variables: { user: import('../middleware/firebase-auth').AuthUser };
-}>();
+type Variables = { user: AuthUser; tenantId: string };
 
-personRelationshipsRoute.use('/*', firebaseAuth());
+const personRelationshipsRoute = new Hono<{ Bindings: Env; Variables: Variables }>();
 
 // POST /api/person-relationships — Create family relationship link
 personRelationshipsRoute.post('/', requireRole('admin', 'imam'), async (c) => {
   const db = createDb(c.env.DATABASE_URL);
   const body = await c.req.json();
-  const user = c.get('user');
+  const tenantId = c.get('tenantId');
 
-  // Basic validation
   if (!body.person_id_a || !body.person_id_b || !body.relationship_code) {
     return c.json({ success: false, error: 'Missing required fields' }, 400);
   }
@@ -31,11 +28,11 @@ personRelationshipsRoute.post('/', requireRole('admin', 'imam'), async (c) => {
   const personA = await db
     .select()
     .from(persons)
-    .where(and(eq(persons.id, body.person_id_a), eq(persons.tenant_id, user.tenant_id!)));
+    .where(and(eq(persons.id, body.person_id_a), eq(persons.tenant_id, tenantId)));
   const personB = await db
     .select()
     .from(persons)
-    .where(and(eq(persons.id, body.person_id_b), eq(persons.tenant_id, user.tenant_id!)));
+    .where(and(eq(persons.id, body.person_id_b), eq(persons.tenant_id, tenantId)));
 
   if (personA.length === 0 || personB.length === 0) {
     return c.json({ success: false, error: 'Persons not found or access denied' }, 404);
@@ -57,12 +54,12 @@ personRelationshipsRoute.post('/', requireRole('admin', 'imam'), async (c) => {
 personRelationshipsRoute.get('/:personId', async (c) => {
   const db = createDb(c.env.DATABASE_URL);
   const personId = c.req.param('personId') as string;
-  const user = c.get('user');
+  const tenantId = c.get('tenantId');
 
   const person = await db
     .select()
     .from(persons)
-    .where(and(eq(persons.id, personId), eq(persons.tenant_id, user.tenant_id!)));
+    .where(and(eq(persons.id, personId), eq(persons.tenant_id, tenantId)));
 
   if (person.length === 0) {
     return c.json({ success: false, error: 'Person not found' }, 404);

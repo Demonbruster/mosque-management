@@ -2,17 +2,17 @@
 // Health Check Route
 // ============================================
 
-import { Hono } from "hono";
-import type { Env } from "../db/client";
+import { Hono } from 'hono';
+import type { Env } from '../db/client';
 
 const health = new Hono<{ Bindings: Env }>();
 
-health.get("/", (c) => {
+health.get('/', (c) => {
   return c.json({
-    status: "ok",
-    service: "mms-backend",
+    status: 'ok',
+    service: 'mms-backend',
     timestamp: new Date().toISOString(),
-    environment: c.env.ENVIRONMENT || "development",
+    environment: c.env?.ENVIRONMENT || 'development',
   });
 });
 
