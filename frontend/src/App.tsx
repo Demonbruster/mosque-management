@@ -4,7 +4,9 @@
 
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { MantineProvider, createTheme } from '@mantine/core';
+import { Notifications } from '@mantine/notifications';
 import { QueryClientProvider } from '@tanstack/react-query';
+import '@mantine/notifications/styles.css';
 import { AuthProvider } from './lib/auth-context';
 import { queryClient } from './lib/api';
 import { Layout } from './components/Layout';
@@ -41,6 +43,7 @@ const theme = createTheme({
 export function App() {
   return (
     <MantineProvider theme={theme} defaultColorScheme="light">
+      <Notifications position="top-right" zIndex={1000} />
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <BrowserRouter>

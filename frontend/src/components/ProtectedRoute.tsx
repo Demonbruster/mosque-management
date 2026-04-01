@@ -2,9 +2,9 @@
 // Protected Route — Firebase RBAC Guard
 // ============================================
 
-import { Navigate } from "react-router-dom";
-import { Center, Loader } from "@mantine/core";
-import { useAuth } from "../lib/auth-context";
+import { Navigate } from 'react-router-dom';
+import { Center, Loader } from '@mantine/core';
+import { useAuth } from '../lib/auth-context';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -17,6 +17,11 @@ interface ProtectedRouteProps {
  */
 export function ProtectedRoute({ children, requiredRoles }: ProtectedRouteProps) {
   const { user, loading, role } = useAuth();
+
+  // E2E Test Bypass
+  if (import.meta.env.MODE === 'development' && localStorage.getItem('e2e_bypass') === 'true') {
+    return <>{children}</>;
+  }
 
   if (loading) {
     return (
@@ -33,9 +38,9 @@ export function ProtectedRoute({ children, requiredRoles }: ProtectedRouteProps)
   if (requiredRoles && role && !requiredRoles.includes(role)) {
     return (
       <Center h="60vh">
-        <div style={{ textAlign: "center" }}>
+        <div style={{ textAlign: 'center' }}>
           <h2>🚫 Access Denied</h2>
-          <p>You need one of these roles: {requiredRoles.join(", ")}</p>
+          <p>You need one of these roles: {requiredRoles.join(', ')}</p>
         </div>
       </Center>
     );

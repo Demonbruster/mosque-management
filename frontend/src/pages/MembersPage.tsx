@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -10,14 +11,24 @@ import {
   Paper,
   LoadingOverlay,
   Pagination,
+  ActionIcon,
 } from '@mantine/core';
+import { IconEdit } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
+import { MemberFormModal } from '../components/forms/MemberFormModal';
 
 export function MembersPage() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<any>(null);
+
+  const handleOpenModal = (member?: any) => {
+    setSelectedMember(member || null);
+    setIsModalOpen(true);
+  };
 
   const { data: searchResults, isLoading: isSearching } = useQuery({
     queryKey: ['persons-search', search],
@@ -47,7 +58,9 @@ export function MembersPage() {
         <Title order={2}>Community Members</Title>
         <Group>
           <Button color="green">Import CSV</Button>
-          <Button color="green">+ Add Member</Button>
+          <Button color="green" onClick={() => handleOpenModal()}>
+            + Add Member
+          </Button>
         </Group>
       </Group>
 
@@ -79,7 +92,7 @@ export function MembersPage() {
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {currentData?.map((person: any) => (
+            {currentData?.map((person: Record<string, any>) => (
               <Table.Tr key={person.id}>
                 <Table.Td style={{ fontWeight: 500 }}>
                   {person.first_name} {person.last_name}
@@ -91,9 +104,18 @@ export function MembersPage() {
                   </Badge>
                 </Table.Td>
                 <Table.Td>
-                  <Button variant="light" size="xs" component={Link} to={`/members/${person.id}`}>
-                    View Details
-                  </Button>
+                  <Group gap="xs">
+                    <Button variant="light" size="xs" component={Link} to={`/members/${person.id}`}>
+                      View
+                    </Button>
+                    <ActionIcon
+                      variant="subtle"
+                      color="blue"
+                      onClick={() => handleOpenModal(person)}
+                    >
+                      <IconEdit size={16} />
+                    </ActionIcon>
+                  </Group>
                 </Table.Td>
               </Table.Tr>
             ))}
@@ -113,6 +135,12 @@ export function MembersPage() {
           </Group>
         )}
       </Paper>
+
+      <MemberFormModal
+        opened={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        initialData={selectedMember}
+      />
     </div>
   );
 }
