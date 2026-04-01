@@ -83,7 +83,7 @@ export function Layout() {
       icon: IconReceipt2,
       auth: true,
       links: [
-        { label: 'Ledger', path: '/ledger', icon: IconFileInvoice },
+        { label: 'Transactions', path: '/finance', icon: IconFileInvoice },
         { label: 'Maker-Checker Queue', path: '/approvals', icon: IconChecklist },
         { label: 'Digital Receipts', path: '/receipts', icon: IconReceipt2 },
       ],
@@ -137,6 +137,7 @@ export function Layout() {
       roles: ['admin'],
       links: [
         { label: 'Admin Users', path: '/admin/users', icon: IconSettings },
+        { label: 'Fund Categories', path: '/admin/fund-categories', icon: IconBook },
         { label: 'Integrations', path: '/integrations', icon: IconPlugConnected },
         { label: 'Audit Logs', path: '/audit-logs', icon: IconHistory },
       ],

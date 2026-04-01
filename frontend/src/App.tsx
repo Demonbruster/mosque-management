@@ -7,6 +7,7 @@ import { MantineProvider, createTheme } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import { QueryClientProvider } from '@tanstack/react-query';
 import '@mantine/notifications/styles.css';
+import '@mantine/dates/styles.css';
 import { AuthProvider } from './lib/auth-context';
 import { queryClient } from './lib/api';
 import { Layout } from './components/Layout';
@@ -18,6 +19,9 @@ import { MemberDetailPage } from './pages/MemberDetailPage';
 import { HouseholdsPage } from './pages/HouseholdsPage';
 import { HouseholdDetailPage } from './pages/HouseholdDetailPage';
 import { PlaceholderPage } from './pages/PlaceholderPage';
+import { TransactionsPage } from './pages/TransactionsPage';
+import { NewTransactionPage } from './pages/NewTransactionPage';
+import { FundCategoriesPage } from './pages/FundCategoriesPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 const theme = createTheme({
@@ -116,10 +120,18 @@ export function App() {
 
                 {/* Finance & Accounting */}
                 <Route
-                  path="/ledger"
+                  path="/finance"
                   element={
                     <ProtectedRoute>
-                      <PlaceholderPage />
+                      <TransactionsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/finance/new"
+                  element={
+                    <ProtectedRoute>
+                      <NewTransactionPage />
                     </ProtectedRoute>
                   }
                 />
@@ -266,6 +278,14 @@ export function App() {
                   element={
                     <ProtectedRoute requiredRoles={['admin']}>
                       <PlaceholderPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/fund-categories"
+                  element={
+                    <ProtectedRoute requiredRoles={['admin']}>
+                      <FundCategoriesPage />
                     </ProtectedRoute>
                   }
                 />

@@ -77,6 +77,8 @@ export const paymentMethodEnum = pgEnum('payment_method', [
   'Cheque',
 ]);
 
+export const transactionTypeEnum = pgEnum('transaction_type', ['Income', 'Expense']);
+
 export const paymentStatusEnum = pgEnum('payment_status', [
   'Paid',
   'Not_Paid',
@@ -260,10 +262,12 @@ export const transactions = pgTable(
       .notNull()
       .references(() => tenants.id, { onDelete: 'cascade' }),
     donor_id: uuid('donor_id').references(() => persons.id, { onDelete: 'set null' }),
+    donor_name: varchar('donor_name', { length: 255 }), // For anonymous or outsider donors
     admin_id: uuid('admin_id').references(() => persons.id, { onDelete: 'set null' }),
     fund_id: uuid('fund_id')
       .notNull()
       .references(() => fundCategories.id, { onDelete: 'restrict' }),
+    type: transactionTypeEnum('type').notNull().default('Income'),
     amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
     currency: varchar('currency', { length: 3 }).notNull().default('INR'),
     payment_method: paymentMethodEnum('payment_method').notNull().default('Cash'),

@@ -26,6 +26,7 @@ import {
   adminUsersRoutes,
   personHouseholdLinksRoutes,
   personRelationshipsRoutes,
+  fundCategoriesRoutes,
 } from './routes';
 
 // ---- Typed Hono context ----
@@ -77,6 +78,7 @@ app.use('/api/tenants/*', firebaseAuth(), requireTenant());
 app.use('/api/admin/*', firebaseAuth(), requireTenant());
 app.use('/api/person-household-links/*', firebaseAuth(), requireTenant());
 app.use('/api/person-relationships/*', firebaseAuth(), requireTenant());
+app.use('/api/fund-categories/*', firebaseAuth(), requireTenant());
 
 // ---- Protected Routes ----
 
@@ -87,6 +89,7 @@ app.route('/api/tenants', tenantsRoutes);
 app.route('/api/admin/users', adminUsersRoutes);
 app.route('/api/person-household-links', personHouseholdLinksRoutes);
 app.route('/api/person-relationships', personRelationshipsRoutes);
+app.route('/api/fund-categories', fundCategoriesRoutes);
 
 // ---- Root ----
 
