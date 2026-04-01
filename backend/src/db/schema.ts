@@ -279,6 +279,8 @@ export const transactions = pgTable(
     approved_by: uuid('approved_by').references(() => persons.id, { onDelete: 'set null' }),
     approved_at: timestamp('approved_at', { withTimezone: true }),
     rejection_reason: text('rejection_reason'),
+    receipt_number: varchar('receipt_number', { length: 50 }).unique(),
+    receipt_pdf_url: varchar('receipt_pdf_url', { length: 500 }),
     created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   },

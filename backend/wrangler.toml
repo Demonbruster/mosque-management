@@ -17,6 +17,12 @@ port = 8787
 # Run: wrangler secret put TWILIO_AUTH_TOKEN
 # Run: wrangler secret put TWILIO_WHATSAPP_NUMBER
 # Run: wrangler secret put CORS_ORIGIN
+# Run: wrangler secret put RESEND_API_KEY
+
+[[r2_buckets]]
+binding = "RECEIPTS_BUCKET"
+bucket_name = "mms-receipts"
+preview_bucket_name = "mms-receipts-dev"
 
 [vars]
 ENVIRONMENT = "development"

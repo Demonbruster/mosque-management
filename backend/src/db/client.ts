@@ -17,6 +17,8 @@ export type Env = {
   TWILIO_WHATSAPP_NUMBER: string;
   CORS_ORIGIN: string;
   ENVIRONMENT: string;
+  RESEND_API_KEY: string;
+  RECEIPTS_BUCKET: R2Bucket;
 };
 
 /**
