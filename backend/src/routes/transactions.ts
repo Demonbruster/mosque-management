@@ -34,6 +34,35 @@ transactionsRoute.get('/summary', async (c) => {
   return c.json({ success: true, data: result });
 });
 
+// GET /api/transactions/pending — List pending transactions for the checker queue
+transactionsRoute.get('/pending', requireRole('admin', 'imam', 'treasurer'), async (c) => {
+  const db = createDb(c.env.DATABASE_URL);
+  const tenantId = c.get('tenantId');
+
+  const result = await db
+    .select({
+      id: transactions.id,
+      amount: transactions.amount,
+      currency: transactions.currency,
+      type: transactions.type,
+      payment_method: transactions.payment_method,
+      status: transactions.status,
+      description: transactions.description,
+      donor_name: transactions.donor_name,
+      transaction_date: transactions.transaction_date,
+      fund_name: fundCategories.fund_name,
+      entered_by_name: sql<string>`COALESCE(${persons.first_name} || ' ' || ${persons.last_name}, 'Admin')`,
+      admin_id: transactions.admin_id,
+    })
+    .from(transactions)
+    .leftJoin(fundCategories, eq(transactions.fund_id, fundCategories.id))
+    .leftJoin(persons, eq(transactions.admin_id, persons.id))
+    .where(and(eq(transactions.tenant_id, tenantId), eq(transactions.status, 'Pending')))
+    .orderBy(sql`${transactions.transaction_date} ASC`);
+
+  return c.json({ success: true, data: result });
+});
+
 // GET /api/transactions — List transactions for the tenant
 transactionsRoute.get('/', async (c) => {
   const db = createDb(c.env.DATABASE_URL);
@@ -51,6 +80,7 @@ transactionsRoute.get('/', async (c) => {
       donor_name: transactions.donor_name,
       transaction_date: transactions.transaction_date,
       fund_name: fundCategories.fund_name,
+      rejection_reason: transactions.rejection_reason,
       entered_by_name: sql<string>`COALESCE(${persons.first_name} || ' ' || ${persons.last_name}, 'Admin')`,
     })
     .from(transactions)
@@ -101,39 +131,87 @@ transactionsRoute.post('/', requireRole('admin', 'imam', 'treasurer'), async (c)
 });
 
 // PATCH /api/transactions/:id/approve — Approve a transaction
-transactionsRoute.patch('/:id/approve', requireRole('admin', 'imam'), async (c) => {
+transactionsRoute.patch('/:id/approve', requireRole('admin', 'imam', 'treasurer'), async (c) => {
   const db = createDb(c.env.DATABASE_URL);
   const id = c.req.param('id') as string;
   const tenantId = c.get('tenantId');
+  const user = c.get('user');
+
+  const currentUserPerson = user.email
+    ? await db.select().from(persons).where(eq(persons.email, user.email)).limit(1)
+    : [];
+  const currentUserId = currentUserPerson.length > 0 ? currentUserPerson[0].id : null;
+
+  const [txn] = await db
+    .select()
+    .from(transactions)
+    .where(and(eq(transactions.id, id), eq(transactions.tenant_id, tenantId)))
+    .limit(1);
+
+  if (!txn) {
+    return c.json({ success: false, error: 'Transaction not found' }, 404);
+  }
+
+  if (txn.admin_id && currentUserId && txn.admin_id === currentUserId) {
+    return c.json({ success: false, error: 'Maker cannot approve their own transaction.' }, 400);
+  }
 
   const result = await db
     .update(transactions)
-    .set({ status: 'Approved', updated_at: new Date() })
+    .set({
+      status: 'Approved',
+      approved_by: currentUserId,
+      approved_at: new Date(),
+      updated_at: new Date(),
+    })
     .where(and(eq(transactions.id, id), eq(transactions.tenant_id, tenantId)))
     .returning();
-
-  if (result.length === 0) {
-    return c.json({ success: false, error: 'Transaction not found' }, 404);
-  }
 
   return c.json({ success: true, data: result[0] });
 });
 
 // PATCH /api/transactions/:id/reject — Reject a transaction
-transactionsRoute.patch('/:id/reject', requireRole('admin', 'imam'), async (c) => {
+transactionsRoute.patch('/:id/reject', requireRole('admin', 'imam', 'treasurer'), async (c) => {
   const db = createDb(c.env.DATABASE_URL);
   const id = c.req.param('id') as string;
   const tenantId = c.get('tenantId');
+  const user = c.get('user');
+  const body = await c.req.json();
+
+  if (!body.rejection_reason) {
+    return c.json({ success: false, error: 'rejection_reason is required.' }, 400);
+  }
+
+  const currentUserPerson = user.email
+    ? await db.select().from(persons).where(eq(persons.email, user.email)).limit(1)
+    : [];
+  const currentUserId = currentUserPerson.length > 0 ? currentUserPerson[0].id : null;
+
+  const [txn] = await db
+    .select()
+    .from(transactions)
+    .where(and(eq(transactions.id, id), eq(transactions.tenant_id, tenantId)))
+    .limit(1);
+
+  if (!txn) {
+    return c.json({ success: false, error: 'Transaction not found' }, 404);
+  }
+
+  if (txn.admin_id && currentUserId && txn.admin_id === currentUserId) {
+    return c.json({ success: false, error: 'Maker cannot reject their own transaction.' }, 400);
+  }
 
   const result = await db
     .update(transactions)
-    .set({ status: 'Rejected', updated_at: new Date() })
+    .set({
+      status: 'Rejected',
+      rejection_reason: body.rejection_reason,
+      approved_by: currentUserId,
+      approved_at: new Date(),
+      updated_at: new Date(),
+    })
     .where(and(eq(transactions.id, id), eq(transactions.tenant_id, tenantId)))
     .returning();
-
-  if (result.length === 0) {
-    return c.json({ success: false, error: 'Transaction not found' }, 404);
-  }
 
   return c.json({ success: true, data: result[0] });
 });

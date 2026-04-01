@@ -2,10 +2,10 @@
 // Transaction & Financial Types
 // ============================================
 
-export type TransactionStatus = "Pending" | "Approved" | "Rejected";
-export type PaymentMethod = "Cash" | "Bank_Transfer" | "UPI" | "Cheque";
-export type PaymentStatus = "Paid" | "Not_Paid" | "Pending" | "Waived";
-export type FundCategoryType = "ZAKAT" | "SADAQAH" | "WAQF" | "GENERAL" | "FITRAH" | "LILLAH";
+export type TransactionStatus = 'Pending' | 'Approved' | 'Rejected';
+export type PaymentMethod = 'Cash' | 'Bank_Transfer' | 'UPI' | 'Cheque';
+export type PaymentStatus = 'Paid' | 'Not_Paid' | 'Pending' | 'Waived';
+export type FundCategoryType = 'ZAKAT' | 'SADAQAH' | 'WAQF' | 'GENERAL' | 'FITRAH' | 'LILLAH';
 
 export interface FundCategory {
   id: string;
@@ -32,6 +32,9 @@ export interface Transaction {
   reference_number: string | null;
   transaction_date: string;
   notes: string | null;
+  approved_by?: string | null;
+  approved_at?: string | null;
+  rejection_reason?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -50,6 +53,12 @@ export interface PeriodicSubscription {
   updated_at: string;
 }
 
-export type CreateFundCategoryInput = Omit<FundCategory, "id" | "created_at" | "updated_at">;
-export type CreateTransactionInput = Omit<Transaction, "id" | "status" | "created_at" | "updated_at">;
-export type CreateSubscriptionInput = Omit<PeriodicSubscription, "id" | "created_at" | "updated_at">;
+export type CreateFundCategoryInput = Omit<FundCategory, 'id' | 'created_at' | 'updated_at'>;
+export type CreateTransactionInput = Omit<
+  Transaction,
+  'id' | 'status' | 'created_at' | 'updated_at'
+>;
+export type CreateSubscriptionInput = Omit<
+  PeriodicSubscription,
+  'id' | 'created_at' | 'updated_at'
+>;

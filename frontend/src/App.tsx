@@ -22,6 +22,7 @@ import { PlaceholderPage } from './pages/PlaceholderPage';
 import { TransactionsPage } from './pages/TransactionsPage';
 import { NewTransactionPage } from './pages/NewTransactionPage';
 import { FundCategoriesPage } from './pages/FundCategoriesPage';
+import { ApprovalQueuePage } from './pages/ApprovalQueuePage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 const theme = createTheme({
@@ -139,7 +140,7 @@ export function App() {
                   path="/approvals"
                   element={
                     <ProtectedRoute>
-                      <PlaceholderPage />
+                      <ApprovalQueuePage />
                     </ProtectedRoute>
                   }
                 />

@@ -1,6 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useQuery } from '@tanstack/react-query';
-import { Title, Group, Button, Table, Badge, Paper, LoadingOverlay, Text } from '@mantine/core';
+import {
+  Title,
+  Group,
+  Button,
+  Table,
+  Badge,
+  Paper,
+  LoadingOverlay,
+  Text,
+  Tooltip,
+} from '@mantine/core';
 import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
 
@@ -82,7 +92,15 @@ export function TransactionsPage() {
                 <Table.Td>{txn.donor_name || 'Anonymous / General'}</Table.Td>
                 <Table.Td>{txn.entered_by_name || 'Admin'}</Table.Td>
                 <Table.Td>
-                  <Badge color={getStatusColor(txn.status)}>{txn.status}</Badge>
+                  {txn.status === 'Rejected' && txn.rejection_reason ? (
+                    <Tooltip label={txn.rejection_reason} multiline w={250} withArrow>
+                      <Badge color={getStatusColor(txn.status)} style={{ cursor: 'help' }}>
+                        {txn.status}
+                      </Badge>
+                    </Tooltip>
+                  ) : (
+                    <Badge color={getStatusColor(txn.status)}>{txn.status}</Badge>
+                  )}
                 </Table.Td>
               </Table.Tr>
             ))}
