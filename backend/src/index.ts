@@ -27,6 +27,7 @@ import {
   personHouseholdLinksRoutes,
   personRelationshipsRoutes,
   fundCategoriesRoutes,
+  publicTransactionsRoutes,
 } from './routes';
 
 // ---- Typed Hono context ----
@@ -65,9 +66,12 @@ app.notFound((c) => {
 });
 
 // ---- Public Routes (no auth required) ----
+// These MUST be mounted before any app.use() auth guards to remain unauthenticated.
+// Hono middleware matching is prefix-based; /api/public/* does NOT match /api/transactions/*.
 
 app.route('/api/health', healthRoutes);
 app.route('/api/whatsapp', whatsappRoutes); // Twilio inbound webhooks — no user auth
+app.route('/api/public/transactions', publicTransactionsRoutes); // ISAK-35 public dashboard — no auth
 
 // ---- Auth + Tenant scope for all protected routes ----
 
