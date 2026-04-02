@@ -14,3 +14,4 @@ export { default as fundCategoriesRoutes } from './fund-categories';
 export { adminUsersRoutes } from './admin-users';
 export { default as publicTransactionsRoutes } from './public-transactions';
 export { default as assetsRoutes } from './assets';
+export { default as tenancyRoutes } from './tenancy';

@@ -25,6 +25,9 @@ import { FundCategoriesPage } from './pages/FundCategoriesPage';
 import { ApprovalQueuePage } from './pages/ApprovalQueuePage';
 import { AssetsPage } from './pages/AssetsPage';
 import { AssetDetailPage } from './pages/AssetDetailPage';
+import { TenancyListPage } from './pages/TenancyListPage';
+import { TenancyDetailPage } from './pages/TenancyDetailPage';
+import { RentDueReportPage } from './pages/RentDueReportPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 const theme = createTheme({
@@ -210,7 +213,23 @@ export function App() {
                   path="/tenancy"
                   element={
                     <ProtectedRoute>
-                      <PlaceholderPage />
+                      <TenancyListPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/tenancy/rent-due"
+                  element={
+                    <ProtectedRoute>
+                      <RentDueReportPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/tenancy/:id"
+                  element={
+                    <ProtectedRoute>
+                      <TenancyDetailPage />
                     </ProtectedRoute>
                   }
                 />

@@ -29,6 +29,7 @@ import {
   fundCategoriesRoutes,
   publicTransactionsRoutes,
   assetsRoutes,
+  tenancyRoutes,
 } from './routes';
 
 // ---- Typed Hono context ----
@@ -85,6 +86,7 @@ app.use('/api/person-household-links/*', firebaseAuth(), requireTenant());
 app.use('/api/person-relationships/*', firebaseAuth(), requireTenant());
 app.use('/api/fund-categories/*', firebaseAuth(), requireTenant());
 app.use('/api/assets/*', firebaseAuth(), requireTenant());
+app.use('/api/tenancy-agreements/*', firebaseAuth(), requireTenant());
 
 // ---- Protected Routes ----
 
@@ -97,6 +99,7 @@ app.route('/api/person-household-links', personHouseholdLinksRoutes);
 app.route('/api/person-relationships', personRelationshipsRoutes);
 app.route('/api/fund-categories', fundCategoriesRoutes);
 app.route('/api/assets', assetsRoutes);
+app.route('/api/tenancy-agreements', tenancyRoutes);
 
 // ---- Root ----
 

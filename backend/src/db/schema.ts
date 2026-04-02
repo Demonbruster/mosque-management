@@ -395,6 +395,35 @@ export const tenancyAgreements = pgTable(
   ],
 );
 
+export const rentPayments = pgTable(
+  'rent_payments',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    tenant_id: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id, { onDelete: 'cascade' }),
+    agreement_id: uuid('agreement_id')
+      .notNull()
+      .references(() => tenancyAgreements.id, { onDelete: 'cascade' }),
+    amount_paid: decimal('amount_paid', { precision: 12, scale: 2 }).notNull(),
+    discount_amount: decimal('discount_amount', { precision: 12, scale: 2 }).default('0'),
+    discount_reason: text('discount_reason'),
+    payment_date: date('payment_date').notNull(),
+    payment_method: paymentMethodEnum('payment_method').notNull().default('Cash'),
+    month: integer('month').notNull(),
+    year: integer('year').notNull(),
+    notes: text('notes'),
+    receipt_generated: boolean('receipt_generated').default(false),
+    created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index('idx_rent_payment_tenant').on(table.tenant_id),
+    index('idx_rent_payment_agree').on(table.agreement_id),
+    index('idx_rent_payment_period').on(table.year, table.month),
+  ],
+);
+
 export const utensilInventory = pgTable(
   'utensil_inventory',
   {
