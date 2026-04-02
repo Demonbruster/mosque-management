@@ -32,6 +32,7 @@ import {
   tenancyRoutes,
   utensilsRoutes,
   utensilRentalsRoutes,
+  lifeEventsRoutes,
 } from './routes';
 
 // ---- Typed Hono context ----
@@ -91,6 +92,7 @@ app.use('/api/assets/*', firebaseAuth(), requireTenant());
 app.use('/api/tenancy-agreements/*', firebaseAuth(), requireTenant());
 app.use('/api/utensils/*', firebaseAuth(), requireTenant());
 app.use('/api/utensil-rentals/*', firebaseAuth(), requireTenant());
+app.use('/api/life-events/*', firebaseAuth(), requireTenant());
 
 // ---- Protected Routes ----
 
@@ -106,6 +108,7 @@ app.route('/api/assets', assetsRoutes);
 app.route('/api/tenancy-agreements', tenancyRoutes);
 app.route('/api/utensils', utensilsRoutes);
 app.route('/api/utensil-rentals', utensilRentalsRoutes);
+app.route('/api/life-events', lifeEventsRoutes);
 
 // ---- Root ----
 

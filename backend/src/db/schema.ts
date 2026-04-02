@@ -23,6 +23,7 @@ import {
   decimal,
   pgEnum,
   index,
+  json,
 } from 'drizzle-orm/pg-core';
 
 // ============================================
@@ -704,6 +705,7 @@ export const lifeEventRecords = pgTable(
     event_date: date('event_date').notNull(),
     certificate_no: varchar('certificate_no', { length: 100 }),
     location: varchar('location', { length: 255 }),
+    document_urls: json('document_urls').$type<string[]>(), // Array of standard URLs
     notes: text('notes'),
     created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),

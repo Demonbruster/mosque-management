@@ -31,6 +31,9 @@ import { RentDueReportPage } from './pages/RentDueReportPage';
 import { UtensilInventoryPage } from './pages/UtensilInventoryPage';
 import { UtensilRentalsPage } from './pages/UtensilRentalsPage';
 import { UtensilVoucherPage } from './pages/UtensilVoucherPage';
+import { LifeEventsPage } from './pages/LifeEventsPage';
+import { LifeEventFormPage } from './pages/LifeEventFormPage';
+import { CertificatePreviewPage } from './pages/CertificatePreviewPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 const theme = createTheme({
@@ -262,10 +265,26 @@ export function App() {
                 />
 
                 <Route
-                  path="/life-registry"
+                  path="/life-events"
                   element={
                     <ProtectedRoute>
-                      <PlaceholderPage />
+                      <LifeEventsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/life-events/new"
+                  element={
+                    <ProtectedRoute>
+                      <LifeEventFormPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/life-events/:id/certificate"
+                  element={
+                    <ProtectedRoute>
+                      <CertificatePreviewPage />
                     </ProtectedRoute>
                   }
                 />
