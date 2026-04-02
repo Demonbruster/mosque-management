@@ -451,12 +451,17 @@ export const utensilRentals = pgTable(
     customer_id: uuid('customer_id')
       .notNull()
       .references(() => persons.id, { onDelete: 'cascade' }),
+    // ST-14.1: Guarantor required for non-member borrowers
+    guarantor_id: uuid('guarantor_id').references(() => persons.id, { onDelete: 'set null' }),
     utensil_id: uuid('utensil_id')
       .notNull()
       .references(() => utensilInventory.id, { onDelete: 'cascade' }),
     quantity: integer('quantity').notNull().default(1),
     issue_date: date('issue_date').notNull(),
     return_date: date('return_date'),
+    is_returned: boolean('is_returned').default(false).notNull(),
+    quantity_returned: integer('quantity_returned'),
+    damage_description: text('damage_description'),
     penalty_fee: decimal('penalty_fee', { precision: 10, scale: 2 }).default('0'),
     notes: text('notes'),
     created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
@@ -466,6 +471,8 @@ export const utensilRentals = pgTable(
     index('idx_rental_tenant').on(table.tenant_id),
     index('idx_rental_customer').on(table.customer_id),
     index('idx_rental_utensil').on(table.utensil_id),
+    index('idx_rental_guarantor').on(table.guarantor_id),
+    index('idx_rental_returned').on(table.is_returned),
   ],
 );
 

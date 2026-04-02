@@ -15,3 +15,5 @@ export { adminUsersRoutes } from './admin-users';
 export { default as publicTransactionsRoutes } from './public-transactions';
 export { default as assetsRoutes } from './assets';
 export { default as tenancyRoutes } from './tenancy';
+export { default as utensilsRoutes } from './utensils';
+export { default as utensilRentalsRoutes } from './utensil-rentals';

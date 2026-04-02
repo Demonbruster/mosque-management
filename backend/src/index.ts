@@ -30,6 +30,8 @@ import {
   publicTransactionsRoutes,
   assetsRoutes,
   tenancyRoutes,
+  utensilsRoutes,
+  utensilRentalsRoutes,
 } from './routes';
 
 // ---- Typed Hono context ----
@@ -87,6 +89,8 @@ app.use('/api/person-relationships/*', firebaseAuth(), requireTenant());
 app.use('/api/fund-categories/*', firebaseAuth(), requireTenant());
 app.use('/api/assets/*', firebaseAuth(), requireTenant());
 app.use('/api/tenancy-agreements/*', firebaseAuth(), requireTenant());
+app.use('/api/utensils/*', firebaseAuth(), requireTenant());
+app.use('/api/utensil-rentals/*', firebaseAuth(), requireTenant());
 
 // ---- Protected Routes ----
 
@@ -100,6 +104,8 @@ app.route('/api/person-relationships', personRelationshipsRoutes);
 app.route('/api/fund-categories', fundCategoriesRoutes);
 app.route('/api/assets', assetsRoutes);
 app.route('/api/tenancy-agreements', tenancyRoutes);
+app.route('/api/utensils', utensilsRoutes);
+app.route('/api/utensil-rentals', utensilRentalsRoutes);
 
 // ---- Root ----
 

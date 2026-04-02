@@ -28,6 +28,9 @@ import { AssetDetailPage } from './pages/AssetDetailPage';
 import { TenancyListPage } from './pages/TenancyListPage';
 import { TenancyDetailPage } from './pages/TenancyDetailPage';
 import { RentDueReportPage } from './pages/RentDueReportPage';
+import { UtensilInventoryPage } from './pages/UtensilInventoryPage';
+import { UtensilRentalsPage } from './pages/UtensilRentalsPage';
+import { UtensilVoucherPage } from './pages/UtensilVoucherPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 const theme = createTheme({
@@ -237,10 +240,27 @@ export function App() {
                   path="/rentals"
                   element={
                     <ProtectedRoute>
-                      <PlaceholderPage />
+                      <UtensilRentalsPage />
                     </ProtectedRoute>
                   }
                 />
+                <Route
+                  path="/utensils"
+                  element={
+                    <ProtectedRoute>
+                      <UtensilInventoryPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/utensil-rentals/:id/voucher"
+                  element={
+                    <ProtectedRoute>
+                      <UtensilVoucherPage />
+                    </ProtectedRoute>
+                  }
+                />
+
                 <Route
                   path="/life-registry"
                   element={
