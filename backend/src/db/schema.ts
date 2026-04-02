@@ -119,6 +119,15 @@ export const enrollmentStatusEnum = pgEnum('enrollment_status', [
   'Suspended',
 ]);
 
+export const assetConditionEnum = pgEnum('asset_condition', ['Excellent', 'Good', 'Fair', 'Poor']);
+
+export const assetDisposalMethodEnum = pgEnum('asset_disposal_method', [
+  'Sold',
+  'Donated',
+  'Scrapped',
+  'Returned',
+]);
+
 // ============================================
 // 0. MULTI-TENANCY
 // ============================================
@@ -331,17 +340,29 @@ export const fixedAssets = pgTable(
     tenant_id: uuid('tenant_id')
       .notNull()
       .references(() => tenants.id, { onDelete: 'cascade' }),
+    unique_asset_id: varchar('unique_asset_id', { length: 50 }).unique(),
     name: varchar('name', { length: 255 }).notNull(),
     description: text('description'),
+    condition: assetConditionEnum('condition').default('Good'),
     fund_source: varchar('fund_source', { length: 150 }),
     purchase_price: decimal('purchase_price', { precision: 12, scale: 2 }),
     current_value: decimal('current_value', { precision: 12, scale: 2 }),
     acquisition_date: date('acquisition_date'),
+    warranty_expiry: date('warranty_expiry'),
+    amc_expiry: date('amc_expiry'),
+    amc_vendor: varchar('amc_vendor', { length: 255 }),
+    is_active: boolean('is_active').default(true).notNull(),
+    disposal_date: date('disposal_date'),
+    disposal_method: assetDisposalMethodEnum('disposal_method'),
     notes: text('notes'),
     created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => [index('idx_asset_tenant').on(table.tenant_id)],
+  (table) => [
+    index('idx_asset_tenant').on(table.tenant_id),
+    index('idx_asset_unique_id').on(table.unique_asset_id),
+    index('idx_asset_active').on(table.is_active),
+  ],
 );
 
 export const tenancyAgreements = pgTable(

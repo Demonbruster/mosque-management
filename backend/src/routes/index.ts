@@ -13,3 +13,4 @@ export { default as personRelationshipsRoutes } from './person-relationships';
 export { default as fundCategoriesRoutes } from './fund-categories';
 export { adminUsersRoutes } from './admin-users';
 export { default as publicTransactionsRoutes } from './public-transactions';
+export { default as assetsRoutes } from './assets';

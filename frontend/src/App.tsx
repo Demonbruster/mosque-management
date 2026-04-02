@@ -23,6 +23,8 @@ import { TransactionsPage } from './pages/TransactionsPage';
 import { NewTransactionPage } from './pages/NewTransactionPage';
 import { FundCategoriesPage } from './pages/FundCategoriesPage';
 import { ApprovalQueuePage } from './pages/ApprovalQueuePage';
+import { AssetsPage } from './pages/AssetsPage';
+import { AssetDetailPage } from './pages/AssetDetailPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 const theme = createTheme({
@@ -192,7 +194,15 @@ export function App() {
                   path="/assets"
                   element={
                     <ProtectedRoute>
-                      <PlaceholderPage />
+                      <AssetsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/assets/:id"
+                  element={
+                    <ProtectedRoute>
+                      <AssetDetailPage />
                     </ProtectedRoute>
                   }
                 />

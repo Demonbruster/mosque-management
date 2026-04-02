@@ -43,6 +43,13 @@
       "when": 1775019949813,
       "tag": "0005_needy_micromacro",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1775104514426,
+      "tag": "0006_large_cable",
+      "breakpoints": true
     }
   ]
 }
