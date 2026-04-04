@@ -41,3 +41,40 @@ export async function broadcastWhatsAppMessage(payload: {
   );
   return res.data;
 }
+
+export type BroadcastCampaign = {
+  id: string;
+  name: string;
+  status: 'Draft' | 'Scheduled' | 'Sending' | 'Completed';
+  total_count: number;
+  sent_count: number;
+  delivered_count: number;
+  failed_count: number;
+  created_at: string;
+};
+
+export async function getCampaigns(): Promise<BroadcastCampaign[]> {
+  const res = await api.get<{ success: boolean; data: BroadcastCampaign[] }>(
+    '/api/communications/campaigns',
+  );
+  return res.data.data;
+}
+
+export async function createCampaign(payload: {
+  name: string;
+  templateId?: string;
+  segmentFilter: any;
+}) {
+  const res = await api.post<{ success: boolean; data: BroadcastCampaign }>(
+    '/api/communications/campaigns',
+    payload,
+  );
+  return res.data.data;
+}
+
+export async function sendCampaign(id: string) {
+  const res = await api.post<{ success: boolean; message: string; queuedCount: number }>(
+    `/api/communications/campaigns/${id}/send`,
+  );
+  return res.data;
+}

@@ -40,6 +40,9 @@ import { MeetingDetailPage } from './pages/MeetingDetailPage';
 import { PanchayathCasesPage } from './pages/PanchayathCasesPage';
 import { CaseDetailPage } from './pages/CaseDetailPage';
 import { CommunicationsLogsPage } from './pages/CommunicationsLogsPage';
+import TagManagerPage from './pages/admin/TagManagerPage';
+import BroadcastCampaignPage from './pages/communications/BroadcastCampaignPage';
+import CampaignHistoryPage from './pages/communications/CampaignHistoryPage';
 
 const theme = createTheme({
   primaryColor: 'green',
@@ -115,6 +118,14 @@ export function App() {
                     </ProtectedRoute>
                   }
                 />
+                <Route
+                  path="/admin/tags"
+                  element={
+                    <ProtectedRoute requiredRoles={['admin']}>
+                      <TagManagerPage />
+                    </ProtectedRoute>
+                  }
+                />
 
                 {/* --- Navigation Placeholder Routes --- */}
                 {/* Community & CRM */}
@@ -179,10 +190,18 @@ export function App() {
                   }
                 />
                 <Route
-                  path="/broadcasts"
+                  path="/communications/broadcast"
                   element={
                     <ProtectedRoute>
-                      <PlaceholderPage />
+                      <BroadcastCampaignPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/communications/campaigns"
+                  element={
+                    <ProtectedRoute>
+                      <CampaignHistoryPage />
                     </ProtectedRoute>
                   }
                 />
@@ -297,14 +316,6 @@ export function App() {
                 {/* Projects & Roadmap */}
                 <Route
                   path="/planning"
-                  element={
-                    <ProtectedRoute>
-                      <PlaceholderPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/campaigns"
                   element={
                     <ProtectedRoute>
                       <PlaceholderPage />

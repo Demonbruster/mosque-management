@@ -94,6 +94,13 @@ export const deliveryStatusEnum = pgEnum('delivery_status', [
   'Failed',
 ]);
 
+export const broadcastCampaignStatusEnum = pgEnum('broadcast_campaign_status', [
+  'Draft',
+  'Scheduled',
+  'Sending',
+  'Completed',
+]);
+
 export const projectPhaseEnum = pgEnum('project_phase', ['Past', 'Present', 'Future']);
 
 export const meetingTypeEnum = pgEnum('meeting_type', ['Jamath', 'Management', 'Panchayath']);
@@ -247,6 +254,26 @@ export const personRelationships = pgTable(
   (table) => [
     index('idx_rel_person_a').on(table.person_id_a),
     index('idx_rel_person_b').on(table.person_id_b),
+  ],
+);
+
+export const personTags = pgTable(
+  'person_tags',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    tenant_id: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id, { onDelete: 'cascade' }),
+    person_id: uuid('person_id')
+      .notNull()
+      .references(() => persons.id, { onDelete: 'cascade' }),
+    tag_name: varchar('tag_name', { length: 150 }).notNull(),
+    created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index('idx_person_tag_tenant').on(table.tenant_id),
+    index('idx_person_tag_person').on(table.person_id),
+    index('idx_person_tag_name').on(table.tag_name),
   ],
 );
 
@@ -513,6 +540,31 @@ export const communicationLogs = pgTable(
     index('idx_comms_person').on(table.person_id),
     index('idx_comms_status').on(table.delivery_status),
     index('idx_comms_sent').on(table.sent_at),
+  ],
+);
+
+export const broadcastCampaigns = pgTable(
+  'broadcast_campaigns',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    tenant_id: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id, { onDelete: 'cascade' }),
+    name: varchar('name', { length: 255 }).notNull(),
+    segment_filter: json('segment_filter').$type<any>(),
+    template_id: varchar('template_id', { length: 255 }),
+    status: broadcastCampaignStatusEnum('status').notNull().default('Draft'),
+    scheduled_at: timestamp('scheduled_at', { withTimezone: true }),
+    total_count: integer('total_count').default(0),
+    sent_count: integer('sent_count').default(0),
+    delivered_count: integer('delivered_count').default(0),
+    failed_count: integer('failed_count').default(0),
+    created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index('idx_broadcast_tenant').on(table.tenant_id),
+    index('idx_broadcast_status').on(table.status),
   ],
 );
 

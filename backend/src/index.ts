@@ -36,6 +36,7 @@ import {
   meetingsRoutes,
   panchayathRoutes,
   communicationsRoutes,
+  personTagsRoutes,
 } from './routes';
 import { eq } from 'drizzle-orm';
 import { createDb } from './db/client';
@@ -104,6 +105,7 @@ app.use('/api/life-events/*', firebaseAuth(), requireTenant());
 app.use('/api/meetings/*', firebaseAuth(), requireTenant());
 app.use('/api/panchayath/*', firebaseAuth(), requireTenant());
 app.use('/api/communications/*', firebaseAuth(), requireTenant());
+app.use('/api/person-tags/*', firebaseAuth(), requireTenant());
 
 // ---- Protected Routes ----
 
@@ -123,6 +125,7 @@ app.route('/api/life-events', lifeEventsRoutes);
 app.route('/api/meetings', meetingsRoutes);
 app.route('/api/panchayath', panchayathRoutes);
 app.route('/api/communications', communicationsRoutes);
+app.route('/api/person-tags', personTagsRoutes);
 
 // ---- Root ----
 

@@ -21,3 +21,4 @@ export { default as lifeEventsRoutes } from './life-events';
 export { default as meetingsRoutes } from './meetings';
 export { default as panchayathRoutes } from './panchayath';
 export { default as communicationsRoutes } from './communications';
+export { default as personTagsRoutes } from './person-tags';

@@ -21,3 +21,22 @@ export const getPersons = async (search?: string): Promise<PersonSummary[]> => {
   const data = res.data.data;
   return Array.isArray(data) ? data : (data?.persons ?? data?.data ?? []);
 };
+
+export const getSegment = async (filters: {
+  zones?: string[];
+  tags?: string[];
+  category?: string;
+  whatsappOptIn?: boolean;
+}): Promise<{ count: number; data: PersonSummary[] }> => {
+  const query = new URLSearchParams();
+  if (filters.zones?.length) filters.zones.forEach((z) => query.append('zones[]', z));
+  if (filters.tags?.length) filters.tags.forEach((t) => query.append('tags[]', t));
+  if (filters.category) query.append('category', filters.category);
+  if (filters.whatsappOptIn !== undefined)
+    query.append('whatsapp_opt_in', String(filters.whatsappOptIn));
+
+  const res = await api.get<{ success: true; count: number; data: PersonSummary[] }>(
+    `/api/persons/segment?${query.toString()}`,
+  );
+  return { count: res.data.count, data: res.data.data };
+};

@@ -3,10 +3,10 @@
 // ============================================
 
 import { Hono } from 'hono';
-import { eq, and, or, ilike, desc, count } from 'drizzle-orm';
+import { eq, and, or, ilike, desc, count, inArray } from 'drizzle-orm';
 import type { Env } from '../db/client';
 import { createDb } from '../db/client';
-import { persons, personHouseholdLinks, households } from '../db/schema';
+import { persons, personHouseholdLinks, households, personTags } from '../db/schema';
 import { requireRole } from '../middleware/firebase-auth';
 import type { AuthUser } from '../middleware/firebase-auth';
 
@@ -116,6 +116,59 @@ personsRoute.get('/', async (c) => {
       totalPages: Math.ceil(total / limit),
     },
   });
+});
+
+// GET /api/persons/segment — Dynamic segmentation
+personsRoute.get('/segment', async (c) => {
+  const db = createDb(c.env.DATABASE_URL);
+  const tenantId = c.get('tenantId');
+
+  const zones = c.req.queries('zones[]') || c.req.queries('zones') || [];
+  const tags = c.req.queries('tags[]') || c.req.queries('tags') || [];
+  const category = c.req.query('category');
+  const whatsappOptIn = c.req.query('whatsapp_opt_in');
+
+  const baseQuery = db
+    .selectDistinct({
+      id: persons.id,
+      first_name: persons.first_name,
+      last_name: persons.last_name,
+      phone_number: persons.phone_number,
+      category: persons.category,
+      whatsapp_opt_in: persons.whatsapp_opt_in,
+    })
+    .from(persons);
+
+  const conditions = [eq(persons.tenant_id, tenantId)];
+
+  if (category) {
+    conditions.push(eq(persons.category, category as any));
+  }
+
+  if (whatsappOptIn === 'true') {
+    conditions.push(eq(persons.whatsapp_opt_in, true));
+  } else if (whatsappOptIn === 'false') {
+    conditions.push(eq(persons.whatsapp_opt_in, false));
+  }
+
+  let finalQuery: any = baseQuery;
+
+  if (zones.length > 0) {
+    finalQuery = finalQuery
+      .innerJoin(personHouseholdLinks, eq(persons.id, personHouseholdLinks.person_id))
+      .innerJoin(households, eq(personHouseholdLinks.household_id, households.id));
+    conditions.push(eq(personHouseholdLinks.is_active, true));
+    conditions.push(inArray(households.mahalla_zone, zones));
+  }
+
+  if (tags.length > 0) {
+    finalQuery = finalQuery.innerJoin(personTags, eq(persons.id, personTags.person_id));
+    conditions.push(inArray(personTags.tag_name, tags));
+  }
+
+  const result = await finalQuery.where(and(...conditions));
+
+  return c.json({ success: true, count: result.length, data: result.slice(0, 10) }); // return top 10 sample + count
 });
 
 // GET /api/persons/:id/household-history — History of household links

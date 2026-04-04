@@ -10,7 +10,14 @@ import { eq, and, desc, inArray } from 'drizzle-orm';
 import { createDb } from '../db/client';
 import type { Env } from '../db/client';
 import type { AuthUser } from '../middleware/firebase-auth';
-import { communicationLogs, persons } from '../db/schema';
+import {
+  communicationLogs,
+  persons,
+  broadcastCampaigns,
+  personHouseholdLinks,
+  households,
+  personTags,
+} from '../db/schema';
 import type { WhatsAppQueuePayload } from '../lib/twilio';
 
 type Variables = {
@@ -111,13 +118,156 @@ communicationsRoute.post('/broadcast', async (c) => {
     };
 
     // Push message to Cloudflare Queue
-    await c.env.WHATSAPP_QUEUE.send(queuePayload);
+    if (c.env.WHATSAPP_QUEUE) {
+      await c.env.WHATSAPP_QUEUE.send(queuePayload);
+    }
     queuedLogs.push(log.id);
   }
 
   return c.json({
     success: true,
     message: `Broadcast queued to ${queuedLogs.length} contacts`,
+    queuedCount: queuedLogs.length,
+  });
+});
+
+/**
+ * GET /api/communications/campaigns
+ * List all broadcast campaigns
+ */
+communicationsRoute.get('/campaigns', async (c) => {
+  const tenantId = c.get('tenantId');
+  const db = createDb(c.env.DATABASE_URL);
+
+  const campaigns = await db
+    .select()
+    .from(broadcastCampaigns)
+    .where(eq(broadcastCampaigns.tenant_id, tenantId))
+    .orderBy(desc(broadcastCampaigns.created_at));
+
+  return c.json({ success: true, data: campaigns });
+});
+
+/**
+ * POST /api/communications/campaigns
+ * Create a new broadcast campaign
+ */
+communicationsRoute.post('/campaigns', async (c) => {
+  const data = await c.req.json<{ name: string; templateId?: string; segmentFilter: any }>();
+  const tenantId = c.get('tenantId');
+  const db = createDb(c.env.DATABASE_URL);
+
+  const [campaign] = await db
+    .insert(broadcastCampaigns)
+    .values({
+      tenant_id: tenantId,
+      name: data.name,
+      segment_filter: data.segmentFilter,
+      template_id: data.templateId,
+      status: 'Draft',
+    })
+    .returning();
+
+  return c.json({ success: true, data: campaign }, 201);
+});
+
+/**
+ * POST /api/communications/campaigns/:id/send
+ * Trigger sending of a campaign
+ */
+communicationsRoute.post('/campaigns/:id/send', async (c) => {
+  const id = c.req.param('id');
+  const tenantId = c.get('tenantId');
+  const db = createDb(c.env.DATABASE_URL);
+
+  // 1. Fetch campaign
+  const campaignResult = await db
+    .select()
+    .from(broadcastCampaigns)
+    .where(and(eq(broadcastCampaigns.id, id), eq(broadcastCampaigns.tenant_id, tenantId)));
+
+  if (campaignResult.length === 0) {
+    return c.json({ success: false, error: 'Campaign not found' }, 404);
+  }
+
+  const campaign = campaignResult[0];
+
+  // 2. Resolve segment filtering query dynamically (similar to persons/segment)
+  const filters = campaign.segment_filter || {};
+  const zones: string[] = filters.zones || [];
+  const tags: string[] = filters.tags || [];
+
+  const baseQuery = db
+    .selectDistinct({
+      id: persons.id,
+      phone_number: persons.phone_number,
+      whatsapp_opt_in: persons.whatsapp_opt_in,
+    })
+    .from(persons);
+
+  const conditions = [eq(persons.tenant_id, tenantId), eq(persons.whatsapp_opt_in, true)];
+
+  let finalQuery: any = baseQuery;
+
+  if (zones.length > 0) {
+    finalQuery = finalQuery
+      .innerJoin(personHouseholdLinks, eq(persons.id, personHouseholdLinks.person_id))
+      .innerJoin(households, eq(personHouseholdLinks.household_id, households.id));
+    conditions.push(eq(personHouseholdLinks.is_active, true));
+    conditions.push(inArray(households.mahalla_zone, zones));
+  }
+
+  if (tags.length > 0) {
+    finalQuery = finalQuery.innerJoin(personTags, eq(persons.id, personTags.person_id));
+    conditions.push(inArray(personTags.tag_name, tags));
+  }
+
+  const targetPersons = await finalQuery.where(and(...conditions));
+
+  const queuedLogs = [];
+  const messageBody = campaign.template_id || 'Default Message Content'; // Should be retrieved from templates
+
+  // Update campaign status
+  await db
+    .update(broadcastCampaigns)
+    .set({
+      status: 'Sending',
+      total_count: targetPersons.length,
+      scheduled_at: new Date(),
+    })
+    .where(eq(broadcastCampaigns.id, id));
+
+  for (const person of targetPersons) {
+    if (!person.phone_number) continue;
+
+    const [log] = await db
+      .insert(communicationLogs)
+      .values({
+        tenant_id: tenantId,
+        person_id: person.id,
+        channel: 'whatsapp',
+        message_body: messageBody,
+        delivery_status: 'Sent',
+      })
+      .returning();
+
+    const queuePayload: WhatsAppQueuePayload = {
+      logId: log.id,
+      tenantId: tenantId,
+      to: person.phone_number,
+      body: messageBody,
+      retryCount: 0,
+    };
+
+    if (c.env.WHATSAPP_QUEUE) {
+      await c.env.WHATSAPP_QUEUE.send(queuePayload);
+    }
+    queuedLogs.push(log.id);
+  }
+
+  return c.json({
+    success: true,
+    message: `Campaign marked for sending to ${queuedLogs.length} contacts`,
     queuedCount: queuedLogs.length,
   });
 });
