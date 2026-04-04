@@ -20,3 +20,4 @@ export { default as utensilRentalsRoutes } from './utensil-rentals';
 export { default as lifeEventsRoutes } from './life-events';
 export { default as meetingsRoutes } from './meetings';
 export { default as panchayathRoutes } from './panchayath';
+export { default as communicationsRoutes } from './communications';

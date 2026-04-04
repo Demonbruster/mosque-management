@@ -93,7 +93,7 @@ export function Layout() {
       icon: IconBroadcast,
       auth: true,
       links: [
-        { label: 'Inbox', path: '/inbox', icon: IconInbox },
+        { label: 'Message Logs', path: '/communications/logs', icon: IconInbox },
         { label: 'Broadcasts', path: '/broadcasts', icon: IconBroadcast },
         { label: 'Audiences', path: '/audiences', icon: IconUsersGroup },
         { label: 'Templates', path: '/templates', icon: IconMessage2Plus },

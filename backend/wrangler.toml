@@ -24,6 +24,16 @@ binding = "RECEIPTS_BUCKET"
 bucket_name = "mms-receipts"
 preview_bucket_name = "mms-receipts-dev"
 
+[[queues.producers]]
+binding = "WHATSAPP_QUEUE"
+queue = "mms-whatsapp-queue"
+
+[[queues.consumers]]
+queue = "mms-whatsapp-queue"
+max_batch_size = 10
+max_batch_timeout = 2
+max_retries = 3
+
 [vars]
 ENVIRONMENT = "development"
 FIREBASE_PROJECT_ID = "mosque-management-sys"

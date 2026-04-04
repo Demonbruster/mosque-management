@@ -19,6 +19,7 @@ export type Env = {
   ENVIRONMENT: string;
   RESEND_API_KEY: string;
   RECEIPTS_BUCKET: R2Bucket;
+  WHATSAPP_QUEUE: Queue<any>;
 };
 
 /**

@@ -35,7 +35,13 @@ import {
   lifeEventsRoutes,
   meetingsRoutes,
   panchayathRoutes,
+  communicationsRoutes,
 } from './routes';
+import { eq } from 'drizzle-orm';
+import { createDb } from './db/client';
+import { communicationLogs } from './db/schema';
+import { sendWhatsAppMessage } from './lib/twilio';
+import type { WhatsAppQueuePayload } from './lib/twilio';
 
 // ---- Typed Hono context ----
 
@@ -97,6 +103,7 @@ app.use('/api/utensil-rentals/*', firebaseAuth(), requireTenant());
 app.use('/api/life-events/*', firebaseAuth(), requireTenant());
 app.use('/api/meetings/*', firebaseAuth(), requireTenant());
 app.use('/api/panchayath/*', firebaseAuth(), requireTenant());
+app.use('/api/communications/*', firebaseAuth(), requireTenant());
 
 // ---- Protected Routes ----
 
@@ -115,6 +122,7 @@ app.route('/api/utensil-rentals', utensilRentalsRoutes);
 app.route('/api/life-events', lifeEventsRoutes);
 app.route('/api/meetings', meetingsRoutes);
 app.route('/api/panchayath', panchayathRoutes);
+app.route('/api/communications', communicationsRoutes);
 
 // ---- Root ----
 
@@ -126,4 +134,62 @@ app.get('/', (c) => {
   });
 });
 
-export default app;
+export { app };
+
+export default {
+  fetch: app.fetch,
+  async queue(batch: MessageBatch<WhatsAppQueuePayload>, env: Env): Promise<void> {
+    const db = createDb(env.DATABASE_URL);
+    for (const msg of batch.messages) {
+      const payload = msg.body;
+      try {
+        const response = await sendWhatsAppMessage(
+          {
+            accountSid: env.TWILIO_ACCOUNT_SID,
+            authToken: env.TWILIO_AUTH_TOKEN,
+            whatsappNumber: env.TWILIO_WHATSAPP_NUMBER,
+          },
+          payload.to,
+          payload.body,
+          payload.mediaUrl,
+        );
+
+        if (!response.ok) {
+          const errorResp = await response.text();
+          console.error(`[QUEUE] Failed to send WhatsApp to ${payload.to}: ${errorResp}`);
+          if (payload.retryCount < 3) {
+            payload.retryCount++;
+            msg.retry();
+          } else {
+            await db
+              .update(communicationLogs)
+              .set({ delivery_status: 'Failed' })
+              .where(eq(communicationLogs.id, payload.logId));
+          }
+        } else {
+          // Update log to Delivered initially, and wait for async Webhooks for deeper statuses
+          // Alternatively, let the webhook handle the status update, and just log success
+          const data = (await response.json()) as any;
+          await db
+            .update(communicationLogs)
+            .set({
+              delivery_status: 'Sent',
+              external_message_id: data.sid,
+            })
+            .where(eq(communicationLogs.id, payload.logId));
+        }
+      } catch (error) {
+        console.error(`[QUEUE] Error sending message:`, error);
+        if (payload.retryCount < 3) {
+          payload.retryCount++;
+          msg.retry();
+        } else {
+          await db
+            .update(communicationLogs)
+            .set({ delivery_status: 'Failed' })
+            .where(eq(communicationLogs.id, payload.logId));
+        }
+      }
+    }
+  },
+};

@@ -8,6 +8,15 @@ interface TwilioConfig {
   whatsappNumber: string;
 }
 
+export type WhatsAppQueuePayload = {
+  logId: string;
+  tenantId: string;
+  to: string;
+  body: string;
+  mediaUrl?: string;
+  retryCount: number;
+};
+
 /**
  * Send a WhatsApp message via Twilio API.
  * Compatible with Cloudflare Workers (uses fetch).

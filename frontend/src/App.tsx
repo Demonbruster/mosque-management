@@ -39,6 +39,7 @@ import { MeetingsPage } from './pages/MeetingsPage';
 import { MeetingDetailPage } from './pages/MeetingDetailPage';
 import { PanchayathCasesPage } from './pages/PanchayathCasesPage';
 import { CaseDetailPage } from './pages/CaseDetailPage';
+import { CommunicationsLogsPage } from './pages/CommunicationsLogsPage';
 
 const theme = createTheme({
   primaryColor: 'green',
@@ -170,10 +171,10 @@ export function App() {
 
                 {/* Communications */}
                 <Route
-                  path="/inbox"
+                  path="/communications/logs"
                   element={
                     <ProtectedRoute>
-                      <PlaceholderPage />
+                      <CommunicationsLogsPage />
                     </ProtectedRoute>
                   }
                 />

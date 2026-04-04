@@ -7,7 +7,7 @@ vi.mock('jose', () => ({
 }));
 
 import { jwtVerify } from 'jose';
-import app from './index';
+import { app } from './index';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
