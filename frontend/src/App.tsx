@@ -35,6 +35,10 @@ import { LifeEventsPage } from './pages/LifeEventsPage';
 import { LifeEventFormPage } from './pages/LifeEventFormPage';
 import { CertificatePreviewPage } from './pages/CertificatePreviewPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { MeetingsPage } from './pages/MeetingsPage';
+import { MeetingDetailPage } from './pages/MeetingDetailPage';
+import { PanchayathCasesPage } from './pages/PanchayathCasesPage';
+import { CaseDetailPage } from './pages/CaseDetailPage';
 
 const theme = createTheme({
   primaryColor: 'green',
@@ -317,6 +321,22 @@ export function App() {
                   }
                 />
                 <Route
+                  path="/meetings"
+                  element={
+                    <ProtectedRoute>
+                      <MeetingsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/meetings/:id"
+                  element={
+                    <ProtectedRoute>
+                      <MeetingDetailPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                   path="/committees"
                   element={
                     <ProtectedRoute>
@@ -325,10 +345,18 @@ export function App() {
                   }
                 />
                 <Route
-                  path="/disputations"
+                  path="/panchayath"
                   element={
                     <ProtectedRoute>
-                      <PlaceholderPage />
+                      <PanchayathCasesPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/panchayath/:id"
+                  element={
+                    <ProtectedRoute>
+                      <CaseDetailPage />
                     </ProtectedRoute>
                   }
                 />

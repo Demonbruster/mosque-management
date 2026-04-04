@@ -129,6 +129,13 @@ export const assetDisposalMethodEnum = pgEnum('asset_disposal_method', [
   'Returned',
 ]);
 
+export const panchayathCaseStatusEnum = pgEnum('panchayath_case_status', [
+  'Open',
+  'In_Progress',
+  'Resolved',
+  'Dismissed',
+]);
+
 // ============================================
 // 0. MULTI-TENANCY
 // ============================================
@@ -582,6 +589,56 @@ export const managementCommittees = pgTable(
     index('idx_committee_tenant').on(table.tenant_id),
     index('idx_committee_person').on(table.person_id),
     index('idx_committee_active').on(table.is_active),
+  ],
+);
+
+export const panchayathCases = pgTable(
+  'panchayath_cases',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    tenant_id: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id, { onDelete: 'cascade' }),
+    case_id: varchar('case_id', { length: 50 }).notNull(),
+    complainant_id: uuid('complainant_id')
+      .notNull()
+      .references(() => persons.id, { onDelete: 'cascade' }),
+    respondent_id: uuid('respondent_id').references(() => persons.id, { onDelete: 'set null' }),
+    subject: varchar('subject', { length: 255 }).notNull(),
+    status: panchayathCaseStatusEnum('status').notNull().default('Open'),
+    resolution_notes: text('resolution_notes'),
+    created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index('idx_panchayath_case_tenant').on(table.tenant_id),
+    index('idx_panchayath_case_id').on(table.case_id),
+    index('idx_panchayath_complainant').on(table.complainant_id),
+    index('idx_panchayath_respondent').on(table.respondent_id),
+    index('idx_panchayath_status').on(table.status),
+  ],
+);
+
+export const panchayathSessions = pgTable(
+  'panchayath_sessions',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    tenant_id: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id, { onDelete: 'cascade' }),
+    case_id: uuid('case_id')
+      .notNull()
+      .references(() => panchayathCases.id, { onDelete: 'cascade' }),
+    session_date: date('session_date').notNull(),
+    notes: text('notes'),
+    next_steps: text('next_steps'),
+    created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index('idx_panchayath_session_tenant').on(table.tenant_id),
+    index('idx_panchayath_session_case').on(table.case_id),
+    index('idx_panchayath_session_date').on(table.session_date),
   ],
 );
 

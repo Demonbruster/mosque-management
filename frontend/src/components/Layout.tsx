@@ -125,8 +125,8 @@ export function Layout() {
       auth: true,
       links: [
         { label: 'Staff', path: '/staff', icon: IconBriefcase },
-        { label: 'Committees', path: '/committees', icon: IconCertificate },
-        { label: 'Disputations', path: '/disputations', icon: IconGavel },
+        { label: 'Meetings', path: '/meetings', icon: IconCertificate },
+        { label: 'Panchayath', path: '/panchayath', icon: IconGavel },
         { label: 'Madrasa', path: '/madrasa', icon: IconBook },
       ],
     },

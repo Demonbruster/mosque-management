@@ -2,8 +2,9 @@
 // Governance Types
 // ============================================
 
-export type ProjectPhase = "Past" | "Present" | "Future";
-export type MeetingType = "Jamath" | "Management" | "Panchayath";
+export type ProjectPhase = 'Past' | 'Present' | 'Future';
+export type MeetingType = 'Jamath' | 'Management' | 'Panchayath';
+export type PanchayathCaseStatus = 'Open' | 'In_Progress' | 'Resolved' | 'Dismissed';
 
 export interface ProjectRoadmap {
   id: string;
@@ -42,6 +43,39 @@ export interface ManagementCommittee {
   tenure_start: string;
   tenure_end: string | null;
   is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PanchayathCase {
+  id: string;
+  tenant_id: string;
+  case_id: string;
+  complainant_id: string;
+  respondent_id: string | null;
+  subject: string;
+  status: PanchayathCaseStatus;
+  resolution_notes: string | null;
+  created_at: string;
+  updated_at: string;
+  // relations
+  complainant?: {
+    first_name: string;
+    last_name: string;
+  };
+  respondent?: {
+    first_name: string;
+    last_name: string;
+  } | null;
+}
+
+export interface PanchayathSession {
+  id: string;
+  tenant_id: string;
+  case_id: string;
+  session_date: string;
+  notes: string | null;
+  next_steps: string | null;
   created_at: string;
   updated_at: string;
 }
