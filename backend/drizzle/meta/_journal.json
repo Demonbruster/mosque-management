@@ -71,6 +71,13 @@
       "when": 1775319380256,
       "tag": "0009_many_human_cannonball",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1775321576933,
+      "tag": "0010_striped_hiroim",
+      "breakpoints": true
     }
   ]
 }

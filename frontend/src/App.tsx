@@ -43,6 +43,8 @@ import { CommunicationsLogsPage } from './pages/CommunicationsLogsPage';
 import TagManagerPage from './pages/admin/TagManagerPage';
 import BroadcastCampaignPage from './pages/communications/BroadcastCampaignPage';
 import CampaignHistoryPage from './pages/communications/CampaignHistoryPage';
+import TemplateManagerPage from './pages/communications/templates/TemplateManagerPage';
+import TemplateEditorPage from './pages/communications/templates/TemplateEditorPage';
 
 const theme = createTheme({
   primaryColor: 'green',
@@ -214,10 +216,26 @@ export function App() {
                   }
                 />
                 <Route
+                  path="/communications/templates"
+                  element={
+                    <ProtectedRoute requiredRoles={['admin']}>
+                      <TemplateManagerPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/communications/templates/:id"
+                  element={
+                    <ProtectedRoute requiredRoles={['admin']}>
+                      <TemplateEditorPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                   path="/templates"
                   element={
-                    <ProtectedRoute>
-                      <PlaceholderPage />
+                    <ProtectedRoute requiredRoles={['admin']}>
+                      <TemplateManagerPage />
                     </ProtectedRoute>
                   }
                 />

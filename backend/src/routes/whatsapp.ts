@@ -10,7 +10,7 @@ import { Hono } from 'hono';
 import { eq, ilike } from 'drizzle-orm';
 import type { Env } from '../db/client';
 import { createDb } from '../db/client';
-import { communicationLogs, persons } from '../db/schema';
+import { communicationLogs, persons, messageTemplates } from '../db/schema';
 import { sendWhatsAppMessage } from '../lib/twilio';
 
 const whatsappRoute = new Hono<{ Bindings: Env }>();
@@ -60,6 +60,31 @@ whatsappRoute.post('/webhook', async (c) => {
             ...(status === 'Read' ? { read_at: new Date() } : {}),
           })
           .where(eq(communicationLogs.external_message_id, messageSid));
+      }
+      return c.text('OK', 200);
+    }
+
+    // 1.5 Template Status Callback (Twilio Content API)
+    const contentSid = body['ContentSid'] as string | undefined;
+    const templateStatus = body['Status'] as string | undefined;
+
+    if (contentSid && templateStatus) {
+      console.log(`[WHATSAPP] Template status update: ${contentSid} is now ${templateStatus}`);
+
+      let status: any = undefined;
+      if (templateStatus === 'approved') status = 'Approved';
+      if (templateStatus === 'rejected') status = 'Rejected';
+      if (templateStatus === 'pending') status = 'Submitted';
+
+      if (status) {
+        await db
+          .update(messageTemplates)
+          .set({
+            approval_status: status,
+            rejection_reason: (body['RejectionReason'] as string) || null,
+            updated_at: new Date(),
+          })
+          .where(eq(messageTemplates.meta_template_id, contentSid));
       }
       return c.text('OK', 200);
     }

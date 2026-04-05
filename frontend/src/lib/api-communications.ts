@@ -78,3 +78,58 @@ export async function sendCampaign(id: string) {
   );
   return res.data;
 }
+export type MessageTemplate = {
+  id: string;
+  template_name: string;
+  template_body: string;
+  header_text?: string;
+  footer_text?: string;
+  variables: string[];
+  cta_buttons: any[];
+  category: 'MARKETING' | 'UTILITY' | 'AUTHENTICATION';
+  approval_status: 'Draft' | 'Submitted' | 'Approved' | 'Rejected';
+  meta_template_id?: string;
+  language: string;
+  rejection_reason?: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export async function getTemplates(): Promise<MessageTemplate[]> {
+  const res = await api.get<{ success: boolean; data: MessageTemplate[] }>('/api/templates');
+  return res.data.data;
+}
+
+export async function getTemplate(id: string): Promise<MessageTemplate> {
+  const res = await api.get<{ success: boolean; data: MessageTemplate }>(`/api/templates/${id}`);
+  return res.data.data;
+}
+
+export async function createTemplate(payload: Partial<MessageTemplate>) {
+  const res = await api.post<{ success: boolean; data: MessageTemplate }>(
+    '/api/templates',
+    payload,
+  );
+  return res.data.data;
+}
+
+export async function updateTemplate(id: string, payload: Partial<MessageTemplate>) {
+  const res = await api.put<{ success: boolean; data: MessageTemplate }>(
+    `/api/templates/${id}`,
+    payload,
+  );
+  return res.data.data;
+}
+
+export async function deleteTemplate(id: string) {
+  const res = await api.delete<{ success: boolean; message: string }>(`/api/templates/${id}`);
+  return res.data;
+}
+
+export async function submitTemplate(id: string) {
+  const res = await api.post<{ success: boolean; data: MessageTemplate }>(
+    `/api/templates/${id}/submit`,
+    {},
+  );
+  return res.data.data;
+}

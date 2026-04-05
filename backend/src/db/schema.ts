@@ -143,6 +143,19 @@ export const panchayathCaseStatusEnum = pgEnum('panchayath_case_status', [
   'Dismissed',
 ]);
 
+export const messageTemplateCategoryEnum = pgEnum('message_template_category', [
+  'MARKETING',
+  'UTILITY',
+  'AUTHENTICATION',
+]);
+
+export const messageTemplateStatusEnum = pgEnum('message_template_status', [
+  'Draft',
+  'Submitted',
+  'Approved',
+  'Rejected',
+]);
+
 // ============================================
 // 0. MULTI-TENANCY
 // ============================================
@@ -565,6 +578,33 @@ export const broadcastCampaigns = pgTable(
   (table) => [
     index('idx_broadcast_tenant').on(table.tenant_id),
     index('idx_broadcast_status').on(table.status),
+  ],
+);
+
+export const messageTemplates = pgTable(
+  'message_templates',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    tenant_id: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id, { onDelete: 'cascade' }),
+    template_name: varchar('template_name', { length: 255 }).notNull(),
+    template_body: text('template_body').notNull(),
+    header_text: varchar('header_text', { length: 255 }),
+    footer_text: varchar('footer_text', { length: 255 }),
+    variables: json('variables').$type<string[]>(), // Array of variable names like ['first_name']
+    cta_buttons: json('cta_buttons').$type<any[]>(), // Array of {text, url}
+    category: messageTemplateCategoryEnum('category').notNull().default('MARKETING'),
+    approval_status: messageTemplateStatusEnum('approval_status').notNull().default('Draft'),
+    meta_template_id: varchar('meta_template_id', { length: 255 }),
+    language: varchar('language', { length: 10 }).notNull().default('en_US'),
+    rejection_reason: text('rejection_reason'),
+    created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index('idx_template_tenant').on(table.tenant_id),
+    index('idx_template_status').on(table.approval_status),
   ],
 );
 

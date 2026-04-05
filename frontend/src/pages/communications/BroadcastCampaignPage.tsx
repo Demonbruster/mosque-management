@@ -17,13 +17,20 @@ import {
   Textarea,
   Alert,
   Checkbox,
+  Stack,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { IconBroadcast, IconInfoCircle } from '@tabler/icons-react';
 import { getSegment } from '../../lib/api-persons';
 import { getPersonTags } from '../../lib/api-person-tags';
-import { createCampaign, sendCampaign } from '../../lib/api-communications';
+import {
+  createCampaign,
+  sendCampaign,
+  getTemplates,
+  MessageTemplate,
+} from '../../lib/api-communications';
+import { WhatsAppPreviewPanel } from './components/WhatsAppPreviewPanel';
 
 export default function BroadcastCampaignPage() {
   const navigate = useNavigate();
@@ -71,6 +78,12 @@ export default function BroadcastCampaignPage() {
   const createMutation = useMutation({
     mutationFn: createCampaign,
   });
+
+  const { data: templates } = useQuery({ queryKey: ['whatsapp-templates'], queryFn: getTemplates });
+  const approvedTemplates = (templates || []).filter((t) => t.approval_status === 'Approved');
+  const templateOptions = approvedTemplates.map((t) => ({ value: t.id, label: t.template_name }));
+
+  const selectedTemplate = approvedTemplates.find((t) => t.id === form.values.templateId);
 
   const sendMutation = useMutation({
     mutationFn: sendCampaign,
@@ -200,16 +213,43 @@ export default function BroadcastCampaignPage() {
           </Stepper.Step>
 
           {/* STEP 3 */}
-          <Stepper.Step label="Message" description="Content">
-            <Textarea
-              label="Message Body / Template"
-              placeholder="Type your message here..."
-              description="Depending on setup, this might map to a pre-approved WhatsApp template."
-              minRows={6}
-              mt="md"
-              withAsterisk
-              {...form.getInputProps('templateId')}
-            />
+          <Stepper.Step label="Message" description="Approved Template">
+            <Stack gap="md" mt="md">
+              <Select
+                label="Select WhatsApp Template"
+                placeholder="Choose an approved template"
+                description="Only approved templates can be used for broadcasts."
+                data={templateOptions}
+                searchable
+                nothingFoundMessage="No approved templates found"
+                {...form.getInputProps('templateId')}
+                withAsterisk
+              />
+
+              {selectedTemplate && (
+                <WhatsAppPreviewPanel
+                  headerText={selectedTemplate.header_text}
+                  body={selectedTemplate.template_body}
+                  footerText={selectedTemplate.footer_text}
+                  buttons={selectedTemplate.cta_buttons}
+                  status={selectedTemplate.approval_status}
+                />
+              )}
+
+              {!selectedTemplate && (
+                <Alert icon={<IconInfoCircle size={16} />} title="Meta Compliance" variant="light">
+                  You must select a pre-approved template from Meta to initiate a broadcast. Go to{' '}
+                  <Button
+                    variant="link"
+                    size="compact-xs"
+                    onClick={() => navigate('/communications/templates')}
+                  >
+                    Templates
+                  </Button>{' '}
+                  to manage them.
+                </Alert>
+              )}
+            </Stack>
           </Stepper.Step>
 
           {/* STEP 4 */}
