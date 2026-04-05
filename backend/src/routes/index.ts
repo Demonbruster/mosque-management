@@ -23,3 +23,4 @@ export { default as panchayathRoutes } from './panchayath';
 export { default as communicationsRoutes } from './communications';
 export { default as personTagsRoutes } from './person-tags';
 export { default as templatesRoutes } from './templates';
+export { default as automationRoutes } from './automations';

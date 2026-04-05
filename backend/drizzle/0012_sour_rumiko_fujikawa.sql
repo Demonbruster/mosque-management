@@ -1,0 +1,2 @@
+ALTER TABLE "automation_flows" ADD COLUMN "audience_tag_id" uuid;--> statement-breakpoint
+ALTER TABLE "automation_flows" ADD CONSTRAINT "automation_flows_audience_tag_id_person_tags_id_fk" FOREIGN KEY ("audience_tag_id") REFERENCES "public"."person_tags"("id") ON DELETE set null ON UPDATE no action;

@@ -193,7 +193,7 @@ communicationsRoute.post('/campaigns/:id/send', async (c) => {
   const campaign = campaignResult[0];
 
   // 2. Resolve segment filtering query dynamically (similar to persons/segment)
-  const filters = campaign.segment_filter || {};
+  const filters = (campaign.segment_filter as any) || {};
   const zones: string[] = filters.zones || [];
   const tags: string[] = filters.tags || [];
 

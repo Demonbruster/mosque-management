@@ -38,11 +38,13 @@ import {
   communicationsRoutes,
   personTagsRoutes,
   templatesRoutes,
+  automationRoutes,
 } from './routes';
 import { eq } from 'drizzle-orm';
 import { createDb } from './db/client';
 import { communicationLogs } from './db/schema';
 import { sendWhatsAppMessage } from './lib/twilio';
+import { TriggerRunner } from './lib/trigger-runner';
 import type { WhatsAppQueuePayload } from './lib/twilio';
 
 // ---- Typed Hono context ----
@@ -107,6 +109,7 @@ app.use('/api/meetings/*', firebaseAuth(), requireTenant());
 app.use('/api/panchayath/*', firebaseAuth(), requireTenant());
 app.use('/api/communications/*', firebaseAuth(), requireTenant());
 app.use('/api/templates/*', firebaseAuth(), requireTenant());
+app.use('/api/automations/*', firebaseAuth(), requireTenant());
 app.use('/api/person-tags/*', firebaseAuth(), requireTenant());
 
 // ---- Protected Routes ----
@@ -128,6 +131,7 @@ app.route('/api/meetings', meetingsRoutes);
 app.route('/api/panchayath', panchayathRoutes);
 app.route('/api/communications', communicationsRoutes);
 app.route('/api/templates', templatesRoutes);
+app.route('/api/automations', automationRoutes);
 app.route('/api/person-tags', personTagsRoutes);
 
 // ---- Root ----
@@ -197,5 +201,17 @@ export default {
         }
       }
     }
+  },
+  async scheduled(event: ScheduledEvent, env: Env, _ctx: ExecutionContext): Promise<void> {
+    console.log(`[CRON] Scheduled event triggered: ${event.cron}`);
+    const db = createDb(env.DATABASE_URL);
+
+    const runner = new TriggerRunner(db, {
+      accountSid: env.TWILIO_ACCOUNT_SID,
+      authToken: env.TWILIO_AUTH_TOKEN,
+      whatsappNumber: env.TWILIO_WHATSAPP_NUMBER,
+    });
+
+    await runner.runScheduledTriggers();
   },
 };

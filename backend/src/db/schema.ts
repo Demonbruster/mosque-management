@@ -156,6 +156,12 @@ export const messageTemplateStatusEnum = pgEnum('message_template_status', [
   'Rejected',
 ]);
 
+export const automationTriggerTypeEnum = pgEnum('automation_trigger_type', [
+  'Keyword',
+  'Schedule',
+  'Event',
+]);
+
 // ============================================
 // 0. MULTI-TENANCY
 // ============================================
@@ -564,7 +570,7 @@ export const broadcastCampaigns = pgTable(
       .notNull()
       .references(() => tenants.id, { onDelete: 'cascade' }),
     name: varchar('name', { length: 255 }).notNull(),
-    segment_filter: json('segment_filter').$type<any>(),
+    segment_filter: json('segment_filter').$type<Record<string, unknown>>(),
     template_id: varchar('template_id', { length: 255 }),
     status: broadcastCampaignStatusEnum('status').notNull().default('Draft'),
     scheduled_at: timestamp('scheduled_at', { withTimezone: true }),
@@ -593,7 +599,7 @@ export const messageTemplates = pgTable(
     header_text: varchar('header_text', { length: 255 }),
     footer_text: varchar('footer_text', { length: 255 }),
     variables: json('variables').$type<string[]>(), // Array of variable names like ['first_name']
-    cta_buttons: json('cta_buttons').$type<any[]>(), // Array of {text, url}
+    cta_buttons: json('cta_buttons').$type<Array<{ type: string; text: string; url?: string }>>(), // Array of {text, url}
     category: messageTemplateCategoryEnum('category').notNull().default('MARKETING'),
     approval_status: messageTemplateStatusEnum('approval_status').notNull().default('Draft'),
     meta_template_id: varchar('meta_template_id', { length: 255 }),
@@ -605,6 +611,58 @@ export const messageTemplates = pgTable(
   (table) => [
     index('idx_template_tenant').on(table.tenant_id),
     index('idx_template_status').on(table.approval_status),
+  ],
+);
+
+export const automationFlows = pgTable(
+  'automation_flows',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    tenant_id: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id, { onDelete: 'cascade' }),
+    name: varchar('name', { length: 255 }).notNull(),
+    description: text('description'),
+    trigger_type: automationTriggerTypeEnum('trigger_type').notNull().default('Keyword'),
+    trigger_value: varchar('trigger_value', { length: 255 }).notNull(), // e.g., "DONATE" or a cron expression
+    steps: json('steps').$type<Record<string, unknown>[]>().notNull(), // Array of { id, type, content, options }
+    is_active: boolean('is_active').default(true).notNull(),
+    is_system: boolean('is_system').default(false).notNull(), // Protected flows like Donation Concierge
+    audience_tag_name: varchar('audience_tag_name', { length: 150 }), // Target audience name for scheduled flows
+    created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index('idx_flow_tenant').on(table.tenant_id),
+    index('idx_flow_trigger').on(table.trigger_type, table.trigger_value),
+    index('idx_flow_active').on(table.is_active),
+  ],
+);
+
+export const conversationStates = pgTable(
+  'conversation_states',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    tenant_id: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id, { onDelete: 'cascade' }),
+    person_id: uuid('person_id')
+      .notNull()
+      .references(() => persons.id, { onDelete: 'cascade' }),
+    flow_id: uuid('flow_id')
+      .notNull()
+      .references(() => automationFlows.id, { onDelete: 'cascade' }),
+    current_step_id: varchar('current_step_id', { length: 100 }),
+    metadata: json('metadata').$type<Record<string, any>>().default({}),
+    expires_at: timestamp('expires_at', { withTimezone: true }),
+    created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index('idx_state_tenant').on(table.tenant_id),
+    index('idx_state_person').on(table.person_id),
+    index('idx_state_flow').on(table.flow_id),
+    index('idx_state_expires').on(table.expires_at),
   ],
 );
 

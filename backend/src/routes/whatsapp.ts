@@ -12,6 +12,7 @@ import type { Env } from '../db/client';
 import { createDb } from '../db/client';
 import { communicationLogs, persons, messageTemplates } from '../db/schema';
 import { sendWhatsAppMessage } from '../lib/twilio';
+import { FlowEngine } from '../lib/flow-engine';
 
 const whatsappRoute = new Hono<{ Bindings: Env }>();
 
@@ -45,7 +46,7 @@ whatsappRoute.post('/webhook', async (c) => {
       console.log(`[WHATSAPP] Delivery callback: ${messageSid} is now ${messageStatus}`);
 
       // Map Twilio status to our enum
-      let status: any = undefined;
+      let status: 'Sent' | 'Delivered' | 'Read' | 'Failed' | undefined = undefined;
       if (messageStatus === 'sent') status = 'Sent';
       if (messageStatus === 'delivered') status = 'Delivered';
       if (messageStatus === 'read') status = 'Read';
@@ -71,7 +72,7 @@ whatsappRoute.post('/webhook', async (c) => {
     if (contentSid && templateStatus) {
       console.log(`[WHATSAPP] Template status update: ${contentSid} is now ${templateStatus}`);
 
-      let status: any = undefined;
+      let status: 'Submitted' | 'Approved' | 'Rejected' | undefined = undefined;
       if (templateStatus === 'approved') status = 'Approved';
       if (templateStatus === 'rejected') status = 'Rejected';
       if (templateStatus === 'pending') status = 'Submitted';
@@ -95,10 +96,7 @@ whatsappRoute.post('/webhook', async (c) => {
     console.log(`[WHATSAPP] Incoming message from ${from}: ${messageBody}`);
 
     // Try to find the person by phone number to link the incoming log
-    const phoneNumber = from.replace('whatsapp:', '').replace('+', '＋');
-    // Wait, Twilio passes whatsapp:+123456789. Our DB has plain formats or E164? Basic ILIKE will work, but using simple exact match on whatever format.
-
-    // We will just do a basic log insert for now, keeping person_id null if there's no match.
+    // We'll just do a basic log insert for now, keeping person_id null if there's no match.
     // Wait, person_id is NOT NULL in Drizzle schema `uuid('person_id').notNull().references()`.
     // So we must find a person.
     const personsList = await db
@@ -119,7 +117,22 @@ whatsappRoute.post('/webhook', async (c) => {
       });
     }
 
-    // Send an auto-reply acknowledgement using the Queue (so we don't block)
+    // 3. Process via Flow Engine — TASK-020
+    const flowEngine = new FlowEngine(db, {
+      accountSid: c.env.TWILIO_ACCOUNT_SID,
+      authToken: c.env.TWILIO_AUTH_TOKEN,
+      whatsappNumber: c.env.TWILIO_WHATSAPP_NUMBER,
+      tenantId: personsList[0]?.tenant_id || '', // Fallback to empty if no person, but startFlow/processIncoming handles this
+    });
+
+    const isHandled = await flowEngine.processIncoming(personsList[0]?.id || '', messageBody);
+
+    if (isHandled) {
+      console.log(`[WHATSAPP] Message handled by flow engine for person ${personsList[0]?.id}`);
+      return c.text('OK', 200);
+    }
+
+    // Fallback: Send an auto-reply acknowledgement using the Queue (so we don't block)
     // Here we'd ideally trigger sendWhatsAppMessage, we can just do it synchronously for simple replies.
     await sendWhatsAppMessage(
       {

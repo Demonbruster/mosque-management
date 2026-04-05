@@ -45,6 +45,8 @@ import BroadcastCampaignPage from './pages/communications/BroadcastCampaignPage'
 import CampaignHistoryPage from './pages/communications/CampaignHistoryPage';
 import TemplateManagerPage from './pages/communications/templates/TemplateManagerPage';
 import TemplateEditorPage from './pages/communications/templates/TemplateEditorPage';
+import { AutomationsPage } from './pages/communications/AutomationsPage';
+import FlowBuilderPage from './pages/communications/FlowBuilderPage';
 
 const theme = createTheme({
   primaryColor: 'green',
@@ -220,6 +222,22 @@ export function App() {
                   element={
                     <ProtectedRoute requiredRoles={['admin']}>
                       <TemplateManagerPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/communications/automations"
+                  element={
+                    <ProtectedRoute requiredRoles={['admin']}>
+                      <AutomationsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/communications/automations/:id"
+                  element={
+                    <ProtectedRoute requiredRoles={['admin']}>
+                      <FlowBuilderPage />
                     </ProtectedRoute>
                   }
                 />
