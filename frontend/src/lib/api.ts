@@ -2,11 +2,12 @@
 // API Client — Axios + React Query
 // ============================================
 
-import axios from "axios";
-import { QueryClient } from "@tanstack/react-query";
-import { firebaseAuth } from "./firebase";
+import axios from 'axios';
+import { QueryClient } from '@tanstack/react-query';
+import { firebaseAuth } from './firebase';
 
-const API_URL = import.meta.env.VITE_API_URL || "";
+const RAW_API_URL = import.meta.env.VITE_API_URL || '';
+const API_URL = RAW_API_URL.endsWith('/') ? RAW_API_URL.slice(0, -1) : RAW_API_URL;
 
 /**
  * Axios instance with automatic Firebase Auth token injection.
@@ -14,7 +15,7 @@ const API_URL = import.meta.env.VITE_API_URL || "";
 export const api = axios.create({
   baseURL: API_URL,
   headers: {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
   },
 });
 
@@ -34,10 +35,10 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Token expired — could trigger sign out or refresh
-      console.warn("[API] Unauthorized — token may be expired");
+      console.warn('[API] Unauthorized — token may be expired');
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 /**

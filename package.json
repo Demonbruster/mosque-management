@@ -27,10 +27,14 @@
     "db:studio": "bun run --filter backend db:studio",
     "deploy:workers": "cd backend && bunx wrangler deploy",
     "deploy:pages": "cd frontend && bun run build && bunx wrangler pages deploy dist --project-name=mms-frontend",
-    "prepare": "husky"
+    "prepare": "husky",
+    "onboard-tenant": "bun run scripts/setup-uat-tenant.ts"
   },
   "dependencies": {
-    "@types/node": "^25.5.0"
+    "@neondatabase/serverless": "^0.10.0",
+    "@types/node": "^25.5.0",
+    "drizzle-orm": "^0.38.0",
+    "firebase-admin": "^13.7.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

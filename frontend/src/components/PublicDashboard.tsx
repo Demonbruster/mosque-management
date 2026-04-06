@@ -14,7 +14,7 @@
 //   - ST-11.9: Footer with last-updated + ISAK-35 badge
 // ============================================
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   Card,
   Title,
@@ -65,8 +65,9 @@ import axios from 'axios';
 
 // ─── Config ──────────────────────────────────────────────
 
-const API_URL = import.meta.env.VITE_API_URL || '';
-const PUBLIC_TENANT_ID =
+const RAW_API_URL = import.meta.env.VITE_API_URL || '';
+const API_URL = RAW_API_URL.endsWith('/') ? RAW_API_URL.slice(0, -1) : RAW_API_URL;
+const DEFAULT_TENANT_ID =
   import.meta.env.VITE_PUBLIC_TENANT_ID || '00000000-0000-0000-0000-000000000001';
 
 // ─── Types ───────────────────────────────────────────────
@@ -284,6 +285,36 @@ export function PublicDashboard() {
   const currentMonth = new Date().getMonth() + 1; // 1-indexed
 
   const [selectedYear, setSelectedYear] = useState<string>(String(currentYear));
+  const [resolvedTenant, setResolvedTenant] = useState<{ id: string; name: string } | null>(null);
+  const [isResolving, setIsResolving] = useState(true);
+
+  // ── Tenant Resolution ──
+
+  useEffect(() => {
+    async function resolveTenant() {
+      const hostname = window.location.hostname;
+
+      // Skip if explicitly provided as a hardcoded default (optional)
+      // but usually we want hostname resolution to win
+
+      try {
+        const resp = await axios.get<{ success: boolean; data: { id: string; name: string } }>(
+          `${API_URL}/api/public/tenants/resolve?hostname=${hostname}`,
+        );
+        if (resp.data.success) {
+          setResolvedTenant(resp.data.data);
+        }
+      } catch (err) {
+        console.warn('[PublicDashboard] Hostname resolution failed, using fallback.', err);
+      } finally {
+        setIsResolving(false);
+      }
+    }
+    resolveTenant();
+  }, []);
+
+  const tenantId = resolvedTenant?.id || DEFAULT_TENANT_ID;
+  const mosqueName = resolvedTenant?.name || 'Mosque Financials';
 
   // ── Data Fetching ──
 
@@ -295,10 +326,12 @@ export function PublicDashboard() {
     queryKey: ['public-transactions-monthly', selectedYear],
     queryFn: async () => {
       const resp = await axios.get<MonthlyResponse>(
-        `${API_URL}/api/public/transactions/summary/monthly?tenant_id=${PUBLIC_TENANT_ID}&year=${selectedYear}`,
+        `${API_URL}/api/public/transactions/summary/monthly?tenant_id=${tenantId}&year=${selectedYear}`,
       );
       return resp.data;
     },
+    enabled: !isResolving, // Wait for resolution
+
     staleTime: 10 * 60 * 1000,
   });
 
@@ -306,14 +339,16 @@ export function PublicDashboard() {
     queryKey: ['public-transactions-trend'],
     queryFn: async () => {
       const resp = await axios.get<TrendResponse>(
-        `${API_URL}/api/public/transactions/summary/trend?tenant_id=${PUBLIC_TENANT_ID}&months=12`,
+        `${API_URL}/api/public/transactions/summary/trend?tenant_id=${tenantId}&months=12`,
       );
       return resp.data;
     },
+    enabled: !isResolving,
+
     staleTime: 10 * 60 * 1000,
   });
 
-  const isLoading = monthlyLoading && trendLoading;
+  const isLoading = monthlyLoading || trendLoading || isResolving;
   const error = monthlyError;
 
   // ── Derived Data ──
@@ -442,13 +477,10 @@ export function PublicDashboard() {
           <Group justify="space-between" align="flex-start" wrap="wrap" gap="xs">
             <div>
               <Title order={2} id="public-dashboard-title">
-                📊 Financial Transparency Dashboard
+                📊 {mosqueName}
               </Title>
               <Text c="dimmed" mt={4} size="sm">
-                Community fund management — all figures show{' '}
-                <Text span fw={600} c="green">
-                  approved transactions only
-                </Text>
+                Financial Transparency Dashboard — {selectedYear}
               </Text>
             </div>
             <Badge

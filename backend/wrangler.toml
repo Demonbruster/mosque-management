@@ -35,9 +35,8 @@ max_batch_timeout = 2
 max_retries = 3
 
 [vars]
-ENVIRONMENT = "development"
-FIREBASE_PROJECT_ID = "mosque-management-sys"
-CORS_ORIGIN = "http://localhost:5173"
+ENVIRONMENT = "production"
+
 
 # ---- Local dev overrides (wrangler dev reads these from .dev.vars) ----
 # Create a file called .dev.vars in /backend with:
