@@ -47,6 +47,8 @@ import TemplateManagerPage from './pages/communications/templates/TemplateManage
 import TemplateEditorPage from './pages/communications/templates/TemplateEditorPage';
 import { AutomationsPage } from './pages/communications/AutomationsPage';
 import FlowBuilderPage from './pages/communications/FlowBuilderPage';
+import { PublicRoadmapPage } from './pages/PublicRoadmapPage';
+import { AdminProjectsPage } from './pages/AdminProjectsPage';
 
 const theme = createTheme({
   primaryColor: 'green',
@@ -350,11 +352,20 @@ export function App() {
                 />
 
                 {/* Projects & Roadmap */}
+                <Route path="/roadmap" element={<PublicRoadmapPage />} />
+                <Route
+                  path="/admin/projects"
+                  element={
+                    <ProtectedRoute requiredRoles={['admin']}>
+                      <AdminProjectsPage />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route
                   path="/planning"
                   element={
                     <ProtectedRoute>
-                      <PlaceholderPage />
+                      <AdminProjectsPage />
                     </ProtectedRoute>
                   }
                 />

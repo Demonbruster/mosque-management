@@ -39,6 +39,8 @@ import {
   personTagsRoutes,
   templatesRoutes,
   automationRoutes,
+  publicRoadmapRoutes,
+  projectsRoutes,
 } from './routes';
 import { eq } from 'drizzle-orm';
 import { createDb } from './db/client';
@@ -88,6 +90,7 @@ app.notFound((c) => {
 
 app.route('/api/health', healthRoutes);
 app.route('/api/whatsapp', whatsappRoutes); // Twilio inbound webhooks — no user auth
+app.route('/api/public/roadmap', publicRoadmapRoutes); // TASK-026 public roadmap — no auth
 app.route('/api/public/transactions', publicTransactionsRoutes); // ISAK-35 public dashboard — no auth
 
 // ---- Auth + Tenant scope for all protected routes ----
@@ -111,6 +114,7 @@ app.use('/api/communications/*', firebaseAuth(), requireTenant());
 app.use('/api/templates/*', firebaseAuth(), requireTenant());
 app.use('/api/automations/*', firebaseAuth(), requireTenant());
 app.use('/api/person-tags/*', firebaseAuth(), requireTenant());
+app.use('/api/projects/*', firebaseAuth(), requireTenant());
 
 // ---- Protected Routes ----
 
@@ -133,6 +137,7 @@ app.route('/api/communications', communicationsRoutes);
 app.route('/api/templates', templatesRoutes);
 app.route('/api/automations', automationRoutes);
 app.route('/api/person-tags', personTagsRoutes);
+app.route('/api/projects', projectsRoutes);
 
 // ---- Root ----
 
