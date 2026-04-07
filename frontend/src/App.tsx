@@ -50,6 +50,7 @@ import FlowBuilderPage from './pages/communications/FlowBuilderPage';
 import { PublicRoadmapPage } from './pages/PublicRoadmapPage';
 import { AdminProjectsPage } from './pages/AdminProjectsPage';
 import { ProjectDetailPage } from './pages/ProjectDetailPage';
+import { ProjectAnalysisReportPage } from './pages/ProjectAnalysisReportPage';
 
 const theme = createTheme({
   primaryColor: 'green',
@@ -359,6 +360,14 @@ export function App() {
                   element={
                     <ProtectedRoute requiredRoles={['admin']}>
                       <AdminProjectsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/projects/analysis"
+                  element={
+                    <ProtectedRoute requiredRoles={['admin']}>
+                      <ProjectAnalysisReportPage />
                     </ProtectedRoute>
                   }
                 />

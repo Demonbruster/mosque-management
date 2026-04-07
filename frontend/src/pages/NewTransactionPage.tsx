@@ -30,6 +30,14 @@ export function NewTransactionPage() {
     },
   });
 
+  const { data: projects } = useQuery({
+    queryKey: ['active-projects'],
+    queryFn: async () => {
+      const res = await api.get('/api/projects');
+      return res.data.data.filter((p: any) => p.phase !== 'Past');
+    },
+  });
+
   const form = useForm({
     initialValues: {
       type: 'Income',
@@ -39,6 +47,7 @@ export function NewTransactionPage() {
       donor_name: '',
       description: '',
       notes: '',
+      project_id: null,
       transaction_date: new Date(),
     },
     validate: {
@@ -74,11 +83,16 @@ export function NewTransactionPage() {
     },
   });
 
-  // Map fund categories for the Select dropdown
   const fundOptions =
     funds?.map((f: any) => ({
       value: f.id,
       label: `${f.fund_name} (${f.compliance_type})`,
+    })) || [];
+
+  const projectOptions =
+    projects?.map((p: any) => ({
+      value: p.id,
+      label: p.project_name,
     })) || [];
 
   return (
@@ -161,6 +175,16 @@ export function NewTransactionPage() {
               placeholder="Brief description of the entry"
               required
               {...form.getInputProps('description')}
+            />
+
+            <Select
+              label="Link to Project (Optional)"
+              description="Track revenue/spend against a strategic roadmap project"
+              placeholder="Select project"
+              data={projectOptions}
+              searchable
+              clearable
+              {...form.getInputProps('project_id')}
             />
 
             <Textarea

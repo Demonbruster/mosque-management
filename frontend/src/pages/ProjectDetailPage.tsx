@@ -22,6 +22,7 @@ import {
   Loader,
   Badge,
   Divider,
+  Tabs,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import {
@@ -48,6 +49,7 @@ import { ProjectInchargeDisplay } from '../components/roadmap/ProjectInchargeDis
 import { MilestoneTimeline } from '../components/roadmap/MilestoneTimeline';
 import { MilestoneFormModal } from '../components/roadmap/MilestoneFormModal';
 import { MilestoneSortableList } from '../components/roadmap/MilestoneSortableList';
+import { ProjectFinancialsTab } from '../components/roadmap/ProjectFinancialsTab';
 import { formatDateMedium } from '../lib/format-utils';
 
 export function ProjectDetailPage() {
@@ -193,110 +195,127 @@ export function ProjectDetailPage() {
           </Group>
         </Stack>
 
-        {/* Project Overview Grid */}
-        <Grid gutter="md">
-          <Grid.Col span={{ base: 12, md: 8 }}>
-            <Stack gap="md">
-              {/* Gantt Timeline */}
-              <Paper withBorder p="lg" radius="md" shadow="sm">
-                <Group mb="lg" gap="xs">
-                  <IconTimeline size={20} color="var(--mantine-color-blue-6)" />
-                  <Title order={4}>Project Timeline</Title>
-                </Group>
-                <MilestoneTimeline
-                  milestones={milestones}
-                  startDate={project.start_date}
-                  endDate={project.target_end_date}
-                />
-              </Paper>
+        {/* Tabs for Overview & Financials */}
+        <Tabs defaultValue="overview">
+          <Tabs.List mb="md">
+            <Tabs.Tab value="overview" leftSection={<IconTimeline size={16} />}>
+              Overview & Milestones
+            </Tabs.Tab>
+            <Tabs.Tab value="financials" leftSection={<IconListCheck size={16} />}>
+              Financials
+            </Tabs.Tab>
+          </Tabs.List>
 
-              {/* Milestone List */}
-              <Paper withBorder p="lg" radius="md" shadow="sm">
-                <Group mb="lg" justify="space-between">
-                  <Group gap="xs">
-                    <IconListCheck size={20} color="var(--mantine-color-teal-6)" />
-                    <Title order={4}>Milestones & Tasks</Title>
-                  </Group>
-                </Group>
-                <MilestoneSortableList
-                  milestones={milestones}
-                  onReorder={(ids) => reorderMutation.mutate(ids)}
-                  onEdit={handleEditClick}
-                  onDelete={handleDeleteClick}
-                />
-              </Paper>
-            </Stack>
-          </Grid.Col>
+          <Tabs.Panel value="overview">
+            <Grid gutter="md">
+              <Grid.Col span={{ base: 12, md: 8 }}>
+                <Stack gap="md">
+                  {/* Gantt Timeline */}
+                  <Paper withBorder p="lg" radius="md" shadow="sm">
+                    <Group mb="lg" gap="xs">
+                      <IconTimeline size={20} color="var(--mantine-color-blue-6)" />
+                      <Title order={4}>Project Timeline</Title>
+                    </Group>
+                    <MilestoneTimeline
+                      milestones={milestones}
+                      startDate={project.start_date}
+                      endDate={project.target_end_date}
+                    />
+                  </Paper>
 
-          <Grid.Col span={{ base: 12, md: 4 }}>
-            <Stack gap="md">
-              {/* Project In-Charge */}
-              <Paper withBorder p="lg" radius="md" shadow="sm">
-                <Group mb="lg" gap="xs">
-                  <IconUser size={20} color="var(--mantine-color-green-6)" />
-                  <Title order={4}>Project In-Charge</Title>
-                </Group>
-                {project.incharge_name ? (
-                  <ProjectInchargeDisplay
-                    name={project.incharge_name}
-                    phone={project.incharge_phone}
-                    email={project.incharge_email}
-                    variant="full"
-                  />
-                ) : (
-                  <Text size="sm" c="dimmed" fs="italic">
-                    No person assigned as in-charge.
-                  </Text>
-                )}
-              </Paper>
-
-              {/* Quick Details */}
-              <Paper withBorder p="lg" radius="md" shadow="sm">
-                <Group mb="lg" gap="xs">
-                  <IconCalendarEvent size={20} color="var(--mantine-color-orange-6)" />
-                  <Title order={4}>Key Dates</Title>
-                </Group>
-                <Stack gap="xs">
-                  <Group justify="space-between">
-                    <Text size="sm" c="dimmed">
-                      Start Date
-                    </Text>
-                    <Text size="sm" fw={600}>
-                      {formatDateMedium(project.start_date)}
-                    </Text>
-                  </Group>
-                  <Divider variant="dashed" />
-                  <Group justify="space-between">
-                    <Text size="sm" c="dimmed">
-                      Target End
-                    </Text>
-                    <Text size="sm" fw={600} color="red">
-                      {formatDateMedium(project.target_end_date)}
-                    </Text>
-                  </Group>
-                  <Divider variant="dashed" />
-                  <Group justify="space-between">
-                    <Text size="sm" c="dimmed">
-                      Current Progress
-                    </Text>
-                    <Badge color="blue" variant="light">
-                      {project.completion_percentage}%
-                    </Badge>
-                  </Group>
+                  {/* Milestone List */}
+                  <Paper withBorder p="lg" radius="md" shadow="sm">
+                    <Group mb="lg" justify="space-between">
+                      <Group gap="xs">
+                        <IconListCheck size={20} color="var(--mantine-color-teal-6)" />
+                        <Title order={4}>Milestones & Tasks</Title>
+                      </Group>
+                    </Group>
+                    <MilestoneSortableList
+                      milestones={milestones}
+                      onReorder={(ids) => reorderMutation.mutate(ids)}
+                      onEdit={handleEditClick}
+                      onDelete={handleDeleteClick}
+                    />
+                  </Paper>
                 </Stack>
-              </Paper>
+              </Grid.Col>
 
-              {/* Project Notes */}
-              <Paper withBorder p="lg" radius="md" shadow="sm">
-                <Group mb="lg" gap="xs">
-                  <IconTrophy size={20} color="var(--mantine-color-yellow-6)" />
-                  <Title order={4}>Notes</Title>
-                </Group>
-                <Text size="sm">{project.notes || 'No project notes available.'}</Text>
-              </Paper>
-            </Stack>
-          </Grid.Col>
-        </Grid>
+              <Grid.Col span={{ base: 12, md: 4 }}>
+                <Stack gap="md">
+                  {/* Project In-Charge */}
+                  <Paper withBorder p="lg" radius="md" shadow="sm">
+                    <Group mb="lg" gap="xs">
+                      <IconUser size={20} color="var(--mantine-color-green-6)" />
+                      <Title order={4}>Project In-Charge</Title>
+                    </Group>
+                    {project.incharge_name ? (
+                      <ProjectInchargeDisplay
+                        name={project.incharge_name}
+                        phone={project.incharge_phone}
+                        email={project.incharge_email}
+                        variant="full"
+                      />
+                    ) : (
+                      <Text size="sm" c="dimmed" fs="italic">
+                        No person assigned as in-charge.
+                      </Text>
+                    )}
+                  </Paper>
+
+                  {/* Quick Details */}
+                  <Paper withBorder p="lg" radius="md" shadow="sm">
+                    <Group mb="lg" gap="xs">
+                      <IconCalendarEvent size={20} color="var(--mantine-color-orange-6)" />
+                      <Title order={4}>Key Dates</Title>
+                    </Group>
+                    <Stack gap="xs">
+                      <Group justify="space-between">
+                        <Text size="sm" c="dimmed">
+                          Start Date
+                        </Text>
+                        <Text size="sm" fw={600}>
+                          {formatDateMedium(project.start_date)}
+                        </Text>
+                      </Group>
+                      <Divider variant="dashed" />
+                      <Group justify="space-between">
+                        <Text size="sm" c="dimmed">
+                          Target End
+                        </Text>
+                        <Text size="sm" fw={600} color="red">
+                          {formatDateMedium(project.target_end_date)}
+                        </Text>
+                      </Group>
+                      <Divider variant="dashed" />
+                      <Group justify="space-between">
+                        <Text size="sm" c="dimmed">
+                          Current Progress
+                        </Text>
+                        <Badge color="blue" variant="light">
+                          {project.completion_percentage}%
+                        </Badge>
+                      </Group>
+                    </Stack>
+                  </Paper>
+
+                  {/* Project Notes */}
+                  <Paper withBorder p="lg" radius="md" shadow="sm">
+                    <Group mb="lg" gap="xs">
+                      <IconTrophy size={20} color="var(--mantine-color-yellow-6)" />
+                      <Title order={4}>Notes</Title>
+                    </Group>
+                    <Text size="sm">{project.notes || 'No project notes available.'}</Text>
+                  </Paper>
+                </Stack>
+              </Grid.Col>
+            </Grid>
+          </Tabs.Panel>
+
+          <Tabs.Panel value="financials">
+            <ProjectFinancialsTab projectId={id} />
+          </Tabs.Panel>
+        </Tabs>
 
         {/* Milestone Modal */}
         <MilestoneFormModal

@@ -175,3 +175,30 @@ export const reorderMilestones = async (projectId: string, ids: string[]): Promi
 export const deleteMilestone = async (projectId: string, milestoneId: string): Promise<void> => {
   await api.delete(`/api/projects/${projectId}/milestones/${milestoneId}`);
 };
+
+// ─── Financials API (authenticated) ──────────────────────
+
+export interface ProjectFinancialSummary {
+  total_receipts: number;
+  total_payments: number;
+  balance: number;
+  estimated_budget: number;
+  budget_utilization: number;
+}
+
+export const getProjectFinancialSummary = async (id: string): Promise<ProjectFinancialSummary> => {
+  const resp = await api.get(`/api/projects/${id}/financial-summary`);
+  return resp.data.data;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const getProjectTransactions = async (id: string): Promise<any[]> => {
+  const resp = await api.get(`/api/projects/${id}/transactions`);
+  return resp.data.data;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const getProjectFinancialAnalysis = async (): Promise<any[]> => {
+  const resp = await api.get('/api/projects/analysis/financials');
+  return resp.data.data;
+};

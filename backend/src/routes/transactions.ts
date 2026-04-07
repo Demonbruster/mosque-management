@@ -53,6 +53,7 @@ transactionsRoute.get('/pending', requireRole('admin', 'imam', 'treasurer'), asy
       fund_name: fundCategories.fund_name,
       entered_by_name: sql<string>`COALESCE(${persons.first_name} || ' ' || ${persons.last_name}, 'Admin')`,
       admin_id: transactions.admin_id,
+      project_id: transactions.project_id,
     })
     .from(transactions)
     .leftJoin(fundCategories, eq(transactions.fund_id, fundCategories.id))
@@ -82,6 +83,7 @@ transactionsRoute.get('/', async (c) => {
       fund_name: fundCategories.fund_name,
       rejection_reason: transactions.rejection_reason,
       entered_by_name: sql<string>`COALESCE(${persons.first_name} || ' ' || ${persons.last_name}, 'Admin')`,
+      project_id: transactions.project_id,
     })
     .from(transactions)
     .leftJoin(fundCategories, eq(transactions.fund_id, fundCategories.id))
@@ -122,6 +124,7 @@ transactionsRoute.post('/', requireRole('admin', 'imam', 'treasurer'), async (c)
       description: body.description || null,
       notes: body.notes || null,
       reference_number: body.reference_number || null,
+      project_id: body.project_id || null, // ST-28.1
       transaction_date: body.transaction_date ? new Date(body.transaction_date) : new Date(),
       status: 'Pending',
     })

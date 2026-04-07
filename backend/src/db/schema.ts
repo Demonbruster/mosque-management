@@ -351,6 +351,7 @@ export const transactions = pgTable(
     rejection_reason: text('rejection_reason'),
     receipt_number: varchar('receipt_number', { length: 50 }).unique(),
     receipt_pdf_url: varchar('receipt_pdf_url', { length: 500 }),
+    project_id: uuid('project_id'),
     created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   },
@@ -360,6 +361,7 @@ export const transactions = pgTable(
     index('idx_txn_fund').on(table.fund_id),
     index('idx_txn_status').on(table.status),
     index('idx_txn_date').on(table.transaction_date),
+    index('idx_txn_project').on(table.project_id),
   ],
 );
 
