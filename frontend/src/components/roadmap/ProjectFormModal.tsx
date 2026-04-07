@@ -1,52 +1,20 @@
 // ============================================
-// ProjectFormModal — Reusable Component (ST-26.8)
-// ============================================
-// Modal form for creating or editing a roadmap project.
-// Supports both create (no project prop) and edit modes.
+// ProjectFormModal — Create/Edit Project (TASK-026 + TASK-027)
 // ============================================
 
-import {
-  Modal,
-  TextInput,
-  Textarea,
-  Select,
-  NumberInput,
-  Stack,
-  Button,
-  Group,
-} from '@mantine/core';
-import { DateInput } from '@mantine/dates';
+import React, { useEffect, useState } from 'react';
+import { Modal, TextInput, Textarea, Select, Stack, Button, Group } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { useEffect } from 'react';
-import type { RoadmapProject, ProjectPhase } from '../../lib/api-projects';
-
-export interface ProjectFormValues {
-  project_name: string;
-  description: string;
-  phase: ProjectPhase;
-  estimated_budget: string;
-  actual_spend: string;
-  completion_percentage: number;
-  start_date: Date | null;
-  target_end_date: Date | null;
-  notes: string;
-}
+import type { RoadmapProject, CreateProjectPayload } from '../../lib/api-projects';
+import { getPersons, PersonSummary } from '../../lib/api-persons';
+import { useQuery } from '@tanstack/react-query';
 
 interface ProjectFormModalProps {
   opened: boolean;
   onClose: () => void;
-  /** If provided, form enters edit mode */
   project?: RoadmapProject | null;
-  /** Called on successful form submission */
-  onSubmit: (values: ProjectFormValues) => void;
-  /** Whether the submit action is loading */
+  onSubmit: (payload: CreateProjectPayload) => void;
   isLoading?: boolean;
-}
-
-function toDate(dateStr: string | null): Date | null {
-  if (!dateStr) return null;
-  const d = new Date(dateStr);
-  return isNaN(d.getTime()) ? null : d;
 }
 
 export function ProjectFormModal({
@@ -57,26 +25,32 @@ export function ProjectFormModal({
   isLoading = false,
 }: ProjectFormModalProps) {
   const isEdit = !!project;
+  const [searchTerm, setSearchTerm] = useState('');
 
-  const form = useForm<ProjectFormValues>({
+  // ST-27.4: Fetch persons for in-charge dropdown
+  const { data: persons = [] } = useQuery({
+    queryKey: ['persons-search', searchTerm],
+    queryFn: () => getPersons(searchTerm),
+    enabled: opened,
+  });
+
+  const form = useForm<CreateProjectPayload>({
     initialValues: {
       project_name: '',
       description: '',
       phase: 'Future',
       estimated_budget: '',
       actual_spend: '',
-      completion_percentage: 0,
-      start_date: null,
-      target_end_date: null,
+      start_date: '',
+      target_end_date: '',
+      project_incharge: null,
       notes: '',
     },
     validate: {
-      project_name: (val) => (val.trim() ? null : 'Project name is required'),
-      completion_percentage: (val) => (val >= 0 && val <= 100 ? null : 'Must be 0–100'),
+      project_name: (v) => (v.trim() ? null : 'Project name is required'),
     },
   });
 
-  // Pre-fill form when in edit mode
   useEffect(() => {
     if (project) {
       form.setValues({
@@ -85,109 +59,123 @@ export function ProjectFormModal({
         phase: project.phase,
         estimated_budget: project.estimated_budget || '',
         actual_spend: project.actual_spend || '',
-        completion_percentage: project.completion_percentage,
-        start_date: toDate(project.start_date),
-        target_end_date: toDate(project.target_end_date),
+        start_date: project.start_date || '',
+        target_end_date: project.target_end_date || '',
+        project_incharge: project.project_incharge,
         notes: project.notes || '',
       });
     } else {
       form.reset();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [project, opened]);
+  }, [project, opened, form]);
 
-  const handleSubmit = (values: ProjectFormValues) => {
-    onSubmit(values);
+  const handleSubmit = (values: CreateProjectPayload) => {
+    onSubmit({
+      ...values,
+      // Ensure empty strings are null for backend
+      estimated_budget: values.estimated_budget || undefined,
+      actual_spend: values.actual_spend || undefined,
+      start_date: values.start_date || undefined,
+      target_end_date: values.target_end_date || undefined,
+    });
   };
+
+  const personData = persons.map((p: PersonSummary) => ({
+    value: p.id,
+    label: `${p.first_name} ${p.last_name || ''} (${p.phone_number || 'No phone'})`,
+  }));
+
+  // If we are editing and have an incharge, but they aren't in the current search results,
+  // we might want to manually add them to the list so they remain selected.
+  if (
+    project?.project_incharge &&
+    project.incharge_name &&
+    !personData.find((p) => p.value === project.project_incharge)
+  ) {
+    personData.push({
+      value: project.project_incharge,
+      label: project.incharge_name,
+    });
+  }
 
   return (
     <Modal
       opened={opened}
       onClose={onClose}
-      title={isEdit ? 'Edit Project' : 'New Roadmap Project'}
-      size="lg"
+      title={isEdit ? 'Edit Project' : 'Initiate New Project'}
+      size="md"
     >
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack gap="sm">
           <TextInput
             label="Project Name"
-            placeholder="e.g., New Masjid Wing Construction"
+            placeholder="e.g., Masjid Renovation Phase 1"
             withAsterisk
             {...form.getInputProps('project_name')}
           />
 
           <Textarea
             label="Description"
-            placeholder="Describe the project vision and scope…"
+            placeholder="High-level goal of the project..."
             autosize
             minRows={2}
-            maxRows={5}
             {...form.getInputProps('description')}
           />
 
-          <Group grow>
-            <Select
-              label="Phase"
-              data={[
-                { value: 'Past', label: '✅ Past (Completed)' },
-                { value: 'Present', label: '🚀 Present (Active)' },
-                { value: 'Future', label: '🌟 Future (Planned)' },
-              ]}
-              allowDeselect={false}
-              {...form.getInputProps('phase')}
-            />
-
-            <NumberInput
-              label="Completion %"
-              min={0}
-              max={100}
-              suffix="%"
-              {...form.getInputProps('completion_percentage')}
-            />
-          </Group>
+          <Select
+            label="Current Phase"
+            data={[
+              { value: 'Future', label: 'Future / Planning' },
+              { value: 'Present', label: 'Current / In-Progress' },
+              { value: 'Past', label: 'Past / Completed' },
+            ]}
+            {...form.getInputProps('phase')}
+          />
 
           <Group grow>
             <TextInput
               label="Estimated Budget"
-              placeholder="e.g., 500000"
-              description="In INR"
+              placeholder="e.g. 500000"
               {...form.getInputProps('estimated_budget')}
             />
             <TextInput
               label="Actual Spend"
-              placeholder="e.g., 150000"
-              description="In INR"
+              placeholder="e.g. 450000"
               {...form.getInputProps('actual_spend')}
             />
           </Group>
 
           <Group grow>
-            <DateInput
-              label="Start Date"
-              placeholder="Select start date"
-              clearable
-              valueFormat="DD MMM YYYY"
-              {...form.getInputProps('start_date')}
-            />
-            <DateInput
+            <TextInput label="Start Date" type="date" {...form.getInputProps('start_date')} />
+            <TextInput
               label="Target End Date"
-              placeholder="Select target date"
-              clearable
-              valueFormat="DD MMM YYYY"
+              type="date"
               {...form.getInputProps('target_end_date')}
             />
           </Group>
 
+          {/* ST-27.4: Project In-Charge Dropdown */}
+          <Select
+            label="Project In-Charge"
+            placeholder="Search for a person..."
+            searchable
+            clearable
+            searchValue={searchTerm}
+            onSearchChange={setSearchTerm}
+            data={personData}
+            {...form.getInputProps('project_incharge')}
+          />
+
           <Textarea
-            label="Notes"
-            placeholder="Any additional notes…"
+            label="Internal Notes"
+            placeholder="Any administrator notes..."
             autosize
             minRows={2}
             {...form.getInputProps('notes')}
           />
 
           <Button type="submit" loading={isLoading} mt="md" fullWidth>
-            {isEdit ? 'Save Changes' : 'Create Project'}
+            {isEdit ? 'Save Project Changes' : 'Create Roadmap Entry'}
           </Button>
         </Stack>
       </form>

@@ -1,5 +1,5 @@
 // ============================================
-// Roadmap Projects API Wrappers — TASK-026
+// Roadmap Projects API Wrappers — TASK-026 + TASK-027
 // ============================================
 
 import axios from 'axios';
@@ -13,17 +13,52 @@ const PUBLIC_TENANT_ID =
 
 export type ProjectPhase = 'Past' | 'Present' | 'Future';
 
+// ST-27.1
+export type MilestoneStatus = 'Not_Started' | 'In_Progress' | 'Completed' | 'Delayed';
+
+export interface ProjectMilestone {
+  id: string;
+  tenant_id: string;
+  project_id: string;
+  milestone_name: string;
+  description: string | null;
+  target_date: string | null;
+  completion_date: string | null;
+  completion_percentage: number;
+  status: MilestoneStatus;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateMilestonePayload {
+  milestone_name: string;
+  description?: string;
+  target_date?: string;
+  completion_date?: string;
+  completion_percentage?: number;
+  status?: MilestoneStatus;
+  sort_order?: number;
+}
+
 export interface RoadmapProject {
   id: string;
   tenant_id: string;
   project_name: string;
   description: string | null;
   phase: ProjectPhase;
-  estimated_budget: string | null; // decimal comes as string from API
+  estimated_budget: string | null;
   actual_spend: string | null;
   completion_percentage: number;
   start_date: string | null;
   target_end_date: string | null;
+  // ST-27.4
+  project_incharge: string | null;
+  incharge_name?: string | null;
+  incharge_phone?: string | null;
+  incharge_email?: string | null;
+  // ST-27.1
+  milestones?: ProjectMilestone[];
   notes: string | null;
   created_at: string;
   updated_at: string;
@@ -49,7 +84,7 @@ export const getPublicRoadmap = async (tenantId?: string): Promise<GroupedRoadma
   return resp.data.data;
 };
 
-// ─── Admin API (authenticated) ───────────────────────────
+// ─── Admin Projects API (authenticated) ─────────────────
 
 export const getProjects = async (phase?: ProjectPhase): Promise<RoadmapProject[]> => {
   const params = new URLSearchParams();
@@ -72,6 +107,7 @@ export interface CreateProjectPayload {
   completion_percentage?: number;
   start_date?: string;
   target_end_date?: string;
+  project_incharge?: string | null;
   notes?: string;
 }
 
@@ -98,4 +134,44 @@ export const updateProjectPhase = async (
 
 export const deleteProject = async (id: string): Promise<void> => {
   await api.delete(`/api/projects/${id}`);
+};
+
+// ─── Milestones API (authenticated) ──────────────────────
+
+export const getMilestones = async (projectId: string): Promise<ProjectMilestone[]> => {
+  const resp = await api.get(`/api/projects/${projectId}/milestones`);
+  return resp.data.data;
+};
+
+export const getMilestone = async (
+  projectId: string,
+  milestoneId: string,
+): Promise<ProjectMilestone> => {
+  const resp = await api.get(`/api/projects/${projectId}/milestones/${milestoneId}`);
+  return resp.data.data;
+};
+
+export const createMilestone = async (
+  projectId: string,
+  payload: CreateMilestonePayload,
+): Promise<ProjectMilestone> => {
+  const resp = await api.post(`/api/projects/${projectId}/milestones`, payload);
+  return resp.data.data;
+};
+
+export const updateMilestone = async (
+  projectId: string,
+  milestoneId: string,
+  payload: Partial<CreateMilestonePayload>,
+): Promise<ProjectMilestone> => {
+  const resp = await api.put(`/api/projects/${projectId}/milestones/${milestoneId}`, payload);
+  return resp.data.data;
+};
+
+export const reorderMilestones = async (projectId: string, ids: string[]): Promise<void> => {
+  await api.patch(`/api/projects/${projectId}/milestones/reorder`, { ids });
+};
+
+export const deleteMilestone = async (projectId: string, milestoneId: string): Promise<void> => {
+  await api.delete(`/api/projects/${projectId}/milestones/${milestoneId}`);
 };

@@ -41,6 +41,7 @@ import {
   automationRoutes,
   publicRoadmapRoutes,
   projectsRoutes,
+  milestonesRoutes,
 } from './routes';
 import { eq } from 'drizzle-orm';
 import { createDb } from './db/client';
@@ -138,6 +139,7 @@ app.route('/api/templates', templatesRoutes);
 app.route('/api/automations', automationRoutes);
 app.route('/api/person-tags', personTagsRoutes);
 app.route('/api/projects', projectsRoutes);
+app.route('/api/projects/:projectId/milestones', milestonesRoutes);
 
 // ---- Root ----
 
@@ -184,7 +186,7 @@ export default {
         } else {
           // Update log to Delivered initially, and wait for async Webhooks for deeper statuses
           // Alternatively, let the webhook handle the status update, and just log success
-          const data = (await response.json()) as any;
+          const data = (await response.json()) as { sid: string };
           await db
             .update(communicationLogs)
             .set({

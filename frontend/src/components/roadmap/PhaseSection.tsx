@@ -42,7 +42,7 @@ export function PhaseSection({ phase, projects, icon, color, title, subtitle }: 
       {/* Project cards grid */}
       <SimpleGrid cols={{ base: 1, sm: phase === 'Present' ? 1 : 2 }} spacing="md">
         {projects.map((project) => (
-          <ProjectCard key={project.id} project={project} phase={phase} />
+          <ProjectCard key={project.id} project={project} />
         ))}
       </SimpleGrid>
     </Box>

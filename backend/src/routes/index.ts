@@ -26,3 +26,4 @@ export { default as templatesRoutes } from './templates';
 export { default as automationRoutes } from './automations';
 export { default as publicRoadmapRoutes } from './public-roadmap';
 export { default as projectsRoutes } from './projects';
+export { default as milestonesRoutes } from './milestones';

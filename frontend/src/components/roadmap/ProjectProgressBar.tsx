@@ -1,86 +1,143 @@
 // ============================================
-// ProjectProgressBar — Reusable Component (ST-26.5)
+// ProjectProgressBar — Reusable Component (TASK-026 + TASK-027)
 // ============================================
-// Animated progress bar with optional milestone markers.
+// Display a progress bar with milestone indicators.
+// Indicators are color-coded by milestone status.
 // ============================================
 
-import { Box, Group, Text, Tooltip, Progress } from '@mantine/core';
-import { IconDiamondFilled } from '@tabler/icons-react';
-
-export interface Milestone {
-  label: string;
-  /** Position (0–100) on the progress bar */
-  at: number;
-}
+import React from 'react';
+import { Box, Tooltip, Progress, Group, Stack, Text, ThemeIcon } from '@mantine/core';
+import { IconCheck, IconAlertTriangle, IconCircle } from '@tabler/icons-react';
+import type { ProjectMilestone } from '../../lib/api-projects';
 
 interface ProjectProgressBarProps {
-  /** Completion percentage (0–100) */
   percentage: number;
-  /** Milestones to display */
-  milestones?: Milestone[];
-  /** Progress bar color */
-  color?: string;
-  /** Show percentage label */
-  showLabel?: boolean;
+  milestones?: ProjectMilestone[];
 }
 
-export function ProjectProgressBar({
-  percentage,
-  milestones = [],
-  color = 'green',
-  showLabel = true,
-}: ProjectProgressBarProps) {
-  const pct = Math.min(Math.max(percentage, 0), 100);
+function getStatusColor(status: string): string {
+  switch (status) {
+    case 'Completed':
+      return 'green';
+    case 'In_Progress':
+      return 'blue';
+    case 'Delayed':
+      return 'red';
+    default:
+      return 'gray';
+  }
+}
+
+export function ProjectProgressBar({ percentage, milestones = [] }: ProjectProgressBarProps) {
+  // Sort milestones by order if available
+  const sortedMilestones = [...milestones].sort(
+    (a, b) => (a.sort_order || 0) - (b.sort_order || 0),
+  );
 
   return (
-    <Box>
-      {/* Percentage label */}
-      {showLabel && (
-        <Group justify="space-between" mb={4}>
-          <Text size="xs" c="dimmed">
-            Progress
-          </Text>
-          <Text size="xs" fw={700} c={pct >= 100 ? 'green' : 'dark'}>
-            {pct}%
-          </Text>
-        </Group>
-      )}
-
-      {/* Progress bar with milestones */}
-      <Box style={{ position: 'relative' }}>
+    <Box mt="md" mb="xl">
+      <Box style={{ position: 'relative', height: 16 }}>
+        {/* Main Progress Track */}
         <Progress
-          value={pct}
-          color={color}
-          size="lg"
+          value={percentage}
+          size={16}
           radius="xl"
-          animated={pct > 0 && pct < 100}
-          transitionDuration={1000}
+          color="green"
+          striped
+          animated={percentage > 0 && percentage < 100}
         />
 
-        {/* Milestone markers */}
-        {milestones.map((ms) => (
-          <Tooltip key={ms.label} label={ms.label} withArrow position="top">
-            <Box
-              style={{
-                position: 'absolute',
-                left: `${ms.at}%`,
-                top: '50%',
-                transform: 'translate(-50%, -50%)',
-                zIndex: 2,
-                cursor: 'pointer',
-              }}
+        {/* Milestone Indicators (Markers along the track) */}
+        {sortedMilestones.map((ms, index) => {
+          // If we have many milestones, position them based on index as a proxy for progress
+          // unless we have specific completion percentages for each.
+          // For now, let's distribute them evenly but ideally it should be completion-based.
+          const pos =
+            ms.completion_percentage !== undefined
+              ? ms.completion_percentage
+              : (index + 1) * (100 / (sortedMilestones.length + 1));
+
+          const color = getStatusColor(ms.status);
+
+          return (
+            <Tooltip
+              key={ms.id}
+              label={
+                <Stack gap={2}>
+                  <Text size="xs" fw={700}>
+                    {ms.milestone_name}
+                  </Text>
+                  <Text size="xs" c="dimmed">
+                    {ms.status.replace('_', ' ')} • {ms.completion_percentage}%
+                  </Text>
+                </Stack>
+              }
+              withArrow
+              position="top"
             >
-              <IconDiamondFilled
-                size={14}
-                color={pct >= ms.at ? 'var(--mantine-color-green-6)' : '#ccc'}
+              <Box
                 style={{
-                  filter: pct >= ms.at ? 'drop-shadow(0 1px 2px rgba(0,0,0,0.2))' : 'none',
+                  position: 'absolute',
+                  left: `${pos}%`,
+                  top: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  cursor: 'pointer',
+                  zIndex: 2,
                 }}
-              />
-            </Box>
-          </Tooltip>
-        ))}
+              >
+                <ThemeIcon
+                  size="xs"
+                  color={color}
+                  variant={ms.status === 'Completed' ? 'filled' : 'light'}
+                  radius="xl"
+                  style={{
+                    boxShadow: '0 0 0 2px white',
+                    transition: 'transform 0.2s',
+                  }}
+                >
+                  {ms.status === 'Completed' ? (
+                    <IconCheck size={8} />
+                  ) : ms.status === 'Delayed' ? (
+                    <IconAlertTriangle size={8} />
+                  ) : (
+                    <IconCircle size={8} />
+                  )}
+                </ThemeIcon>
+              </Box>
+            </Tooltip>
+          );
+        })}
       </Box>
+
+      {/* Legend below bar for clear labels */}
+      {sortedMilestones.length > 0 && (
+        <Group mt="md" gap="sm" justify="space-between" wrap="nowrap">
+          {sortedMilestones.slice(0, 3).map(
+            (
+              ms, // Show first 3 only to avoid clutter on small screens
+            ) => (
+              <Group key={ms.id} gap={4} wrap="nowrap">
+                <Box
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    backgroundColor: `var(--mantine-color-${getStatusColor(ms.status)}-5)`,
+                  }}
+                />
+                <Text size="10px" fw={500} c="dimmed" truncate style={{ maxWidth: 80 }}>
+                  {ms.milestone_name}
+                </Text>
+              </Group>
+            ),
+          )}
+          {sortedMilestones.length > 3 && (
+            <Text size="10px" c="dimmed" fw={500}>
+              +{sortedMilestones.length - 3} more
+            </Text>
+          )}
+        </Group>
+      )}
     </Box>
   );
 }
