@@ -39,6 +39,7 @@ import {
   personTagsRoutes,
   templatesRoutes,
   automationRoutes,
+  publicTenantsRoute,
   publicRoadmapRoutes,
   projectsRoutes,
   milestonesRoutes,
@@ -93,6 +94,7 @@ app.route('/api/health', healthRoutes);
 app.route('/api/whatsapp', whatsappRoutes); // Twilio inbound webhooks — no user auth
 app.route('/api/public/roadmap', publicRoadmapRoutes); // TASK-026 public roadmap — no auth
 app.route('/api/public/transactions', publicTransactionsRoutes); // ISAK-35 public dashboard — no auth
+app.route('/api/public/tenants', publicTenantsRoute); // Hostname/Slug resolution — no auth
 
 // ---- Auth + Tenant scope for all protected routes ----
 

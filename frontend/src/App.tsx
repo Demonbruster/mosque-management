@@ -33,6 +33,7 @@ import { UtensilRentalsPage } from './pages/UtensilRentalsPage';
 import { UtensilVoucherPage } from './pages/UtensilVoucherPage';
 import { LifeEventsPage } from './pages/LifeEventsPage';
 import { LifeEventFormPage } from './pages/LifeEventFormPage';
+import { LifeEventDetailPage } from './pages/LifeEventDetailPage';
 import { CertificatePreviewPage } from './pages/CertificatePreviewPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { MeetingsPage } from './pages/MeetingsPage';
@@ -349,6 +350,14 @@ export function App() {
                   element={
                     <ProtectedRoute>
                       <LifeEventFormPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/life-events/:id"
+                  element={
+                    <ProtectedRoute>
+                      <LifeEventDetailPage />
                     </ProtectedRoute>
                   }
                 />

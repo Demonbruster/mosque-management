@@ -107,7 +107,7 @@ export function Layout() {
         { label: 'Fixed Assets', path: '/assets', icon: IconBuildingStore },
         { label: 'Tenancy', path: '/tenancy', icon: IconBuildingEstate },
         { label: 'Rentals', path: '/rentals', icon: IconChairDirector },
-        { label: 'Life Registry', path: '/life-registry', icon: IconHeartHandshake },
+        { label: 'Life Registry', path: '/life-events', icon: IconHeartHandshake },
       ],
     },
     {

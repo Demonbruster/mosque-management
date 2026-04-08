@@ -40,3 +40,7 @@ export const getSegment = async (filters: {
   );
   return { count: res.data.count, data: res.data.data };
 };
+export const getPerson = async (id: string): Promise<any> => {
+  const res = await api.get(`/api/persons/${id}`);
+  return res.data.data;
+};
