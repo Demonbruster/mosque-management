@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect } from 'react';
 import { Modal, TextInput, Select, Checkbox, Textarea, Button, Group, Stack } from '@mantine/core';
-import { useForm } from '@mantine/form';
-import { zodResolver } from 'mantine-form-zod-resolver';
+import { useForm, schemaResolver } from '@mantine/form';
 import { z } from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
@@ -10,19 +9,57 @@ import { api } from '../../lib/api';
 import type { CreatePersonInput, UpdatePersonInput, Person } from '@mms/shared';
 
 // Form validation schema using Zod
-const schema = z.object({
-  first_name: z.string().min(2, { message: 'First name should have at least 2 letters' }),
-  last_name: z.string().min(2, { message: 'Last name should have at least 2 letters' }),
-  email: z.string().email({ message: 'Invalid email' }).or(z.literal('')),
-  phone_number: z.string().optional(),
-  dob: z.string().optional(), // Date of Birth string YYYY-MM-DD
-  gender: z.enum(['male', 'female', 'other', '']).optional(),
-  category: z.enum(['Member', 'Non-Member', 'Dependent', 'Staff', 'Hifl']),
-  whatsapp_opt_in: z.boolean().default(false),
-  national_id: z.string().optional(),
-  notes: z.string().optional(),
-  is_active: z.boolean().default(true),
-});
+const schema = z
+  .object({
+    first_name: z
+      .string()
+      .min(2, { message: 'First name must be at least 2 characters' })
+      .max(50, { message: 'First name must not exceed 50 characters' }),
+    last_name: z
+      .string()
+      .min(2, { message: 'Last name must be at least 2 characters' })
+      .max(50, { message: 'Last name must not exceed 50 characters' }),
+    email: z.string().email({ message: 'Please enter a valid email address' }).or(z.literal('')),
+    phone_number: z
+      .string()
+      .regex(/^\+?[\d\s-]{7,20}$/, { message: 'Please enter a valid phone number' })
+      .or(z.literal('')),
+    dob: z
+      .string()
+      .refine(
+        (val) => {
+          if (!val) return true;
+          const date = new Date(val);
+          return date <= new Date();
+        },
+        { message: 'Date of birth cannot be in the future' },
+      )
+      .optional()
+      .or(z.literal('')),
+    gender: z.enum(['male', 'female', 'other', '']).optional(),
+    category: z.enum(['Member', 'Non-Member', 'Dependent', 'Staff', 'Hifl']),
+    whatsapp_opt_in: z.boolean().default(false),
+    national_id: z
+      .string()
+      .max(30, { message: 'National ID must not exceed 30 characters' })
+      .optional()
+      .or(z.literal('')),
+    notes: z
+      .string()
+      .max(500, { message: 'Notes must not exceed 500 characters' })
+      .optional()
+      .or(z.literal('')),
+    is_active: z.boolean().default(true),
+  })
+  .superRefine((data, ctx) => {
+    if (data.whatsapp_opt_in && (!data.phone_number || data.phone_number.trim() === '')) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Phone number is required to opt-in to WhatsApp',
+        path: ['phone_number'],
+      });
+    }
+  });
 
 interface MemberFormModalProps {
   opened: boolean;
@@ -57,7 +94,7 @@ export function MemberFormModal({
       notes: '',
       is_active: true,
     },
-    validate: zodResolver(schema),
+    validate: schemaResolver(schema),
   });
 
   // Effect to reset form when opened changes (or when initialData arrives)

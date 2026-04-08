@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect } from 'react';
 import { Modal, TextInput, Textarea, Button, Group, Stack } from '@mantine/core';
-import { useForm } from '@mantine/form';
-import { zodResolver } from 'mantine-form-zod-resolver';
+import { useForm, schemaResolver } from '@mantine/form';
 import { z } from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
@@ -43,7 +42,7 @@ export function HouseholdFormModal({ opened, onClose, initialData }: HouseholdFo
       mahalla_zone: '',
       notes: '',
     },
-    validate: zodResolver(schema),
+    validate: schemaResolver(schema),
   });
 
   useEffect(() => {

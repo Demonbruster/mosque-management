@@ -198,6 +198,14 @@ export function App() {
                   }
                 />
                 <Route
+                  path="/broadcasts"
+                  element={
+                    <ProtectedRoute>
+                      <PlaceholderPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                   path="/communications/broadcast"
                   element={
                     <ProtectedRoute>

@@ -1,16 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Title, Group, Button, Grid, Paper, Text, Badge, Divider, Table } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { api } from '../lib/api';
 import { AddMemberToHouseholdModal } from '../components/forms/AddMemberToHouseholdModal';
+import { HouseholdFormModal } from '../components/forms/HouseholdFormModal';
 
 export function HouseholdDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
+  const [isEditHouseholdOpen, setIsEditHouseholdOpen] = useState(false);
 
   const deleteLinkMutation = useMutation({
     mutationFn: async (linkId: string) => {
@@ -56,6 +59,39 @@ export function HouseholdDetailPage() {
     },
   });
 
+  const deleteHouseholdMutation = useMutation({
+    mutationFn: async () => {
+      const res = await api.delete(`/api/households/${id}`);
+      return res.data;
+    },
+    onSuccess: () => {
+      notifications.show({
+        title: 'Success',
+        message: 'Household deleted successfully',
+        color: 'green',
+      });
+      queryClient.invalidateQueries({ queryKey: ['households'] });
+      navigate('/households');
+    },
+    onError: (error: Error | any) => {
+      notifications.show({
+        title: 'Error',
+        message: error.response?.data?.error || 'Failed to delete household',
+        color: 'red',
+      });
+    },
+  });
+
+  const handleDeleteHousehold = () => {
+    if (
+      window.confirm(
+        'Are you sure you want to delete this household? This action cannot be undone.',
+      )
+    ) {
+      deleteHouseholdMutation.mutate();
+    }
+  };
+
   if (hLoading) return <div style={{ padding: 24 }}>Loading...</div>;
   if (!householdData) return <div style={{ padding: 24 }}>Household not found.</div>;
 
@@ -69,8 +105,16 @@ export function HouseholdDetailPage() {
           <Title order={2}>Household Details</Title>
         </Group>
         <Group>
-          <Button variant="outline" color="green">
-            Edit Address
+          <Button variant="outline" color="green" onClick={() => setIsEditHouseholdOpen(true)}>
+            Edit Household
+          </Button>
+          <Button
+            variant="light"
+            color="red"
+            onClick={handleDeleteHousehold}
+            loading={deleteHouseholdMutation.isPending}
+          >
+            Delete
           </Button>
         </Group>
       </Group>
@@ -180,6 +224,12 @@ export function HouseholdDetailPage() {
         onClose={() => setIsLinkModalOpen(false)}
         householdId={id!}
         currentMembers={membersData || []}
+      />
+
+      <HouseholdFormModal
+        opened={isEditHouseholdOpen}
+        onClose={() => setIsEditHouseholdOpen(false)}
+        initialData={householdData}
       />
     </div>
   );

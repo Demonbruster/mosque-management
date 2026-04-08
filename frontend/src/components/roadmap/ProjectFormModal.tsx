@@ -67,7 +67,8 @@ export function ProjectFormModal({
     } else {
       form.reset();
     }
-  }, [project, opened, form]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [project, opened]);
 
   const handleSubmit = (values: CreateProjectPayload) => {
     onSubmit({
