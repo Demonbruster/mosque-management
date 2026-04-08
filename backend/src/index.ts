@@ -40,6 +40,9 @@ import {
   templatesRoutes,
   automationRoutes,
   publicTenantsRoute,
+  publicRoadmapRoutes,
+  projectsRoutes,
+  milestonesRoutes,
 } from './routes';
 import { eq } from 'drizzle-orm';
 import { createDb } from './db/client';
@@ -89,6 +92,7 @@ app.notFound((c) => {
 
 app.route('/api/health', healthRoutes);
 app.route('/api/whatsapp', whatsappRoutes); // Twilio inbound webhooks — no user auth
+app.route('/api/public/roadmap', publicRoadmapRoutes); // TASK-026 public roadmap — no auth
 app.route('/api/public/transactions', publicTransactionsRoutes); // ISAK-35 public dashboard — no auth
 app.route('/api/public/tenants', publicTenantsRoute); // Hostname/Slug resolution — no auth
 
@@ -113,6 +117,7 @@ app.use('/api/communications/*', firebaseAuth(), requireTenant());
 app.use('/api/templates/*', firebaseAuth(), requireTenant());
 app.use('/api/automations/*', firebaseAuth(), requireTenant());
 app.use('/api/person-tags/*', firebaseAuth(), requireTenant());
+app.use('/api/projects/*', firebaseAuth(), requireTenant());
 
 // ---- Protected Routes ----
 
@@ -135,6 +140,8 @@ app.route('/api/communications', communicationsRoutes);
 app.route('/api/templates', templatesRoutes);
 app.route('/api/automations', automationRoutes);
 app.route('/api/person-tags', personTagsRoutes);
+app.route('/api/projects', projectsRoutes);
+app.route('/api/projects/:projectId/milestones', milestonesRoutes);
 
 // ---- Root ----
 
@@ -181,7 +188,7 @@ export default {
         } else {
           // Update log to Delivered initially, and wait for async Webhooks for deeper statuses
           // Alternatively, let the webhook handle the status update, and just log success
-          const data = (await response.json()) as any;
+          const data = (await response.json()) as { sid: string };
           await db
             .update(communicationLogs)
             .set({

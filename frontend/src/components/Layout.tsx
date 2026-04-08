@@ -115,8 +115,8 @@ export function Layout() {
       icon: IconTarget,
       auth: true,
       links: [
-        { label: 'Planning', path: '/planning', icon: IconMapPins },
-        { label: 'Capital Campaigns', path: '/campaigns', icon: IconTarget },
+        { label: 'Admin Projects', path: '/admin/projects', icon: IconMapPins },
+        { label: 'Public Roadmap', path: '/roadmap', icon: IconTarget },
       ],
     },
     {

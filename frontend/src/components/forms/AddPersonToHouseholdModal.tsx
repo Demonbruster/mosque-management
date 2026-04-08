@@ -7,74 +7,66 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import { IconAlertTriangle } from '@tabler/icons-react';
 import { api } from '../../lib/api';
-import { MemberFormModal } from './MemberFormModal';
+import { HouseholdFormModal } from './HouseholdFormModal';
+import { Household } from '@mms/shared';
 
 const schema = z.object({
-  person_id: z.string().min(1, { message: 'Please select a member' }),
+  household_id: z.string().min(1, { message: 'Please select a household' }),
   household_role: z.enum(['Head', 'Spouse', 'Dependent', 'Child', 'Other']),
   start_date: z.string().min(1, { message: 'Start date is required' }),
 });
 
-interface AddMemberToHouseholdModalProps {
+interface AddPersonToHouseholdModalProps {
   opened: boolean;
   onClose: () => void;
-  householdId: string;
-  currentMembers: any[];
+  personId: string;
 }
 
-export function AddMemberToHouseholdModal({
+export function AddPersonToHouseholdModal({
   opened,
   onClose,
-  householdId,
-  currentMembers,
-}: AddMemberToHouseholdModalProps) {
+  personId,
+}: AddPersonToHouseholdModalProps) {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
-  const [isMemberFormOpen, setIsMemberFormOpen] = useState(false);
-
-  const hasHead = currentMembers?.some((m) => m.household_role === 'Head');
+  const [isHouseholdFormOpen, setIsHouseholdFormOpen] = useState(false);
 
   const form = useForm({
     mode: 'uncontrolled',
     initialValues: {
-      person_id: '',
-      household_role: hasHead ? 'Dependent' : 'Head',
+      household_id: '',
+      household_role: 'Dependent',
       start_date: new Date().toISOString().split('T')[0],
     },
     validate: schemaResolver(schema),
   });
 
-  // Watch for changes on the form to run validation check
-  const selectedPersonId = form.getValues().person_id;
-
-  // 1. Search Persons Query
+  // 1. Search Households Query
   const { data: searchResults } = useQuery({
-    queryKey: ['persons-search', search],
+    queryKey: ['households-search', search],
     queryFn: async () => {
-      const res = await api.get(`/api/persons/search?q=${search}`);
+      const res = await api.get(`/api/households/search?q=${search}`);
       return res.data.data;
     },
     enabled: opened && search.length >= 2,
   });
 
   const searchOptions =
-    searchResults?.map((p: Record<string, any>) => ({
-      value: p.id,
-      label: `${p.first_name} ${p.last_name} (${p.phone_number || p.email || p.category})`,
+    searchResults?.map((h: Record<string, any>) => ({
+      value: h.id,
+      label: `${h.address_line_1} ${h.mahalla_zone ? `(${h.mahalla_zone})` : ''}`,
     })) || [];
 
-  // If a created member just arrived, force an option into the map so
-  // Mantine Select finds it valid without searching again
   const [forcedOptions, setForcedOptions] = useState<Record<string, any>[]>([]);
 
-  // 2. Fetch person's history to warn if already in a household
+  // 2. Fetch person's history to warn if already in an active household
   const { data: personHistory, isLoading: isLoadingHistory } = useQuery({
-    queryKey: ['person-household-history', selectedPersonId],
+    queryKey: ['person-history', personId], // matching MemberDetailPage queryKey
     queryFn: async () => {
-      const res = await api.get(`/api/persons/${selectedPersonId}/household-history`);
+      const res = await api.get(`/api/persons/${personId}/household-history`);
       return res.data.data;
     },
-    enabled: !!selectedPersonId,
+    enabled: !!personId && opened,
   });
 
   // Validate Active link status
@@ -86,7 +78,7 @@ export function AddMemberToHouseholdModal({
     mutationFn: async (payload: Record<string, any>) => {
       const res = await api.post('/api/person-household-links', {
         ...payload,
-        household_id: householdId,
+        person_id: personId,
       });
       return res.data;
     },
@@ -96,13 +88,15 @@ export function AddMemberToHouseholdModal({
         message: 'Member linked to household successfully',
         color: 'green',
       });
-      queryClient.invalidateQueries({ queryKey: ['household-members', householdId] });
+      // Invalidate relevant queries
+      queryClient.invalidateQueries({ queryKey: ['person-history', personId] });
+      queryClient.invalidateQueries({ queryKey: ['person', personId] });
       handleClose();
     },
     onError: (error: Error | any) => {
       notifications.show({
         title: 'Error',
-        message: error.response?.data?.error || 'Failed to link member',
+        message: error.response?.data?.error || 'Failed to link household',
         color: 'red',
       });
     },
@@ -124,18 +118,26 @@ export function AddMemberToHouseholdModal({
   const handleClose = () => {
     form.reset();
     setSearch('');
+    // Clear the forced options just in case
+    setForcedOptions([]);
+    // Using setTimeout to reset after animation closes fully if needed
     onClose();
   };
 
-  // Callback from the MemberFormModal upon successful creation
-  const onNewMemberCreated = (newPerson: Record<string, any>) => {
-    const label = `${newPerson.first_name} ${newPerson.last_name}`;
-    setForcedOptions([{ value: newPerson.id, label }]);
-    form.setFieldValue('person_id', newPerson.id);
+  const handleNewHouseholdCreated = () => {
+    setIsHouseholdFormOpen(false);
+    // Since creating a household doesn't return the full newly created object easily via a success callback in the current implementation of HouseholdFormModal,
+    // we would ideally query the newest created household or ask the user to safely search for it.
+    // For now, prompt them to search it.
+    notifications.show({
+      title: 'Note',
+      message: 'Please search for the address of the household you just created.',
+      color: 'blue',
+    });
   };
 
   const roleData = [
-    { value: 'Head', label: 'Head of Household (Leader)', disabled: hasHead },
+    { value: 'Head', label: 'Head of Household (Leader)' },
     { value: 'Spouse', label: 'Spouse' },
     { value: 'Dependent', label: 'Dependent' },
   ];
@@ -145,33 +147,33 @@ export function AddMemberToHouseholdModal({
       <Modal
         opened={opened}
         onClose={handleClose}
-        title="Add Member to Household"
+        title="Add to Existing Household"
         size="md"
         padding="lg"
       >
         <form onSubmit={form.onSubmit(handleSubmit)}>
           <Stack gap="sm">
             <Select
-              label="Select Member"
-              placeholder="Search by name, email, or phone..."
+              label="Search Household"
+              placeholder="Search by address or mahalla..."
               data={[...forcedOptions, ...searchOptions]}
               searchable
               searchValue={search}
               onSearchChange={setSearch}
               clearable
               withAsterisk
-              key={form.key('person_id')}
-              {...form.getInputProps('person_id')}
+              key={form.key('household_id')}
+              {...form.getInputProps('household_id')}
               nothingFoundMessage={
                 <Text size="sm" p="xs">
-                  No member found.{' '}
+                  No household found.{' '}
                   <Button
                     variant="transparent"
                     size="xs"
                     p={0}
-                    onClick={() => setIsMemberFormOpen(true)}
+                    onClick={() => setIsHouseholdFormOpen(true)}
                   >
-                    Create new member
+                    Create new household
                   </Button>
                 </Text>
               }
@@ -184,10 +186,9 @@ export function AddMemberToHouseholdModal({
                 color="red"
                 variant="light"
               >
-                This person is already linked to another household (
-                <strong>{activeLink.address_line_1}</strong>). You must navigate to that
-                person&apos;s profile and remove their active household link before adding them
-                here.
+                This person is already linked to an active household (
+                <strong>{activeLink.address_line_1}</strong>). You must modify or end their active
+                household link before adding them to a new one.
               </Alert>
             )}
 
@@ -195,7 +196,6 @@ export function AddMemberToHouseholdModal({
               label="Household Role"
               data={roleData}
               withAsterisk
-              description={hasHead ? 'This household already has a Head.' : ''}
               key={form.key('household_role')}
               {...form.getInputProps('household_role')}
             />
@@ -210,8 +210,8 @@ export function AddMemberToHouseholdModal({
           </Stack>
 
           <Group justify="space-between" mt="xl">
-            <Button variant="subtle" color="blue" onClick={() => setIsMemberFormOpen(true)}>
-              + Create New CRM Member
+            <Button variant="subtle" color="blue" onClick={() => setIsHouseholdFormOpen(true)}>
+              + Create New Household
             </Button>
             <Group>
               <Button variant="default" onClick={handleClose} disabled={linkMutation.isPending}>
@@ -230,12 +230,10 @@ export function AddMemberToHouseholdModal({
         </form>
       </Modal>
 
-      {/* Embed the Member Form Modal so we can seamlessly create and link new members! */}
-      <MemberFormModal
-        opened={isMemberFormOpen}
-        onClose={() => setIsMemberFormOpen(false)}
+      <HouseholdFormModal
+        opened={isHouseholdFormOpen}
+        onClose={handleNewHouseholdCreated}
         initialData={null}
-        onSuccessCallback={onNewMemberCreated}
       />
     </>
   );

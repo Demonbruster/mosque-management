@@ -1,10 +1,19 @@
-import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
 import { Title, Group, Button, Grid, Paper, Text, Badge, Divider, Table } from '@mantine/core';
 import { api } from '../lib/api';
+import { MemberFormModal } from '../components/forms/MemberFormModal';
+import { AddPersonToHouseholdModal } from '../components/forms/AddPersonToHouseholdModal';
+import { LinkRelationshipModal } from '../components/forms/LinkRelationshipModal';
 
 export function MemberDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const queryClient = useQueryClient();
+
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+  const [isAddHouseholdOpen, setIsAddHouseholdOpen] = useState(false);
+  const [isLinkRelationshipOpen, setIsLinkRelationshipOpen] = useState(false);
 
   const { data: personData, isLoading: personLoading } = useQuery({
     queryKey: ['person', id],
@@ -46,7 +55,7 @@ export function MemberDetailPage() {
           <Badge color="blue">{personData.category}</Badge>
         </Group>
         <Group>
-          <Button variant="outline" color="green">
+          <Button variant="outline" color="green" onClick={() => setIsEditProfileOpen(true)}>
             Edit Profile
           </Button>
         </Group>
@@ -82,7 +91,7 @@ export function MemberDetailPage() {
           <Paper withBorder p="md" radius="md" mt="md">
             <Group justify="space-between" mb="sm">
               <Title order={4}>Relationships</Title>
-              <Button size="xs" variant="light">
+              <Button size="xs" variant="light" onClick={() => setIsLinkRelationshipOpen(true)}>
                 + Link
               </Button>
             </Group>
@@ -114,7 +123,7 @@ export function MemberDetailPage() {
           <Paper withBorder p="md" radius="md">
             <Group justify="space-between" mb="sm">
               <Title order={4}>Household History</Title>
-              <Button size="xs" variant="light">
+              <Button size="xs" variant="light" onClick={() => setIsAddHouseholdOpen(true)}>
                 + Add to Household
               </Button>
             </Group>
@@ -179,6 +188,26 @@ export function MemberDetailPage() {
           </Paper>
         </Grid.Col>
       </Grid>
+
+      {/* Modals */}
+      <MemberFormModal
+        opened={isEditProfileOpen}
+        onClose={() => setIsEditProfileOpen(false)}
+        initialData={personData}
+        onSuccessCallback={() => {
+          queryClient.invalidateQueries({ queryKey: ['person', id] });
+        }}
+      />
+      <AddPersonToHouseholdModal
+        opened={isAddHouseholdOpen}
+        onClose={() => setIsAddHouseholdOpen(false)}
+        personId={id!}
+      />
+      <LinkRelationshipModal
+        opened={isLinkRelationshipOpen}
+        onClose={() => setIsLinkRelationshipOpen(false)}
+        personId={id!}
+      />
     </div>
   );
 }

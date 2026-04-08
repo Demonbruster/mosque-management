@@ -92,6 +92,13 @@
       "when": 1775364255797,
       "tag": "0012_sour_rumiko_fujikawa",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1775620801657,
+      "tag": "0013_hard_husk",
+      "breakpoints": true
     }
   ]
 }

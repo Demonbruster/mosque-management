@@ -224,6 +224,26 @@ personsRoute.get('/:id', async (c) => {
   return c.json({ success: true, data: result[0] });
 });
 
+// PUT /api/persons/:id — Update a person
+personsRoute.put('/:id', requireRole('admin', 'imam'), async (c) => {
+  const db = createDb(c.env.DATABASE_URL);
+  const id = c.req.param('id') as string;
+  const tenantId = c.get('tenantId') as string;
+  const body = await c.req.json();
+
+  const result = await db
+    .update(persons)
+    .set({ ...body, updated_at: new Date() })
+    .where(and(eq(persons.id, id), eq(persons.tenant_id, tenantId)))
+    .returning();
+
+  if (result.length === 0) {
+    return c.json({ success: false, error: 'Person not found' }, 404);
+  }
+
+  return c.json({ success: true, data: result[0] });
+});
+
 // POST /api/persons — Create a new person (admin/imam only)
 personsRoute.post('/', requireRole('admin', 'imam'), async (c) => {
   const db = createDb(c.env.DATABASE_URL);

@@ -162,6 +162,13 @@ export const automationTriggerTypeEnum = pgEnum('automation_trigger_type', [
   'Event',
 ]);
 
+export const milestoneStatusEnum = pgEnum('milestone_status', [
+  'Not_Started',
+  'In_Progress',
+  'Completed',
+  'Delayed',
+]);
+
 // ============================================
 // 0. MULTI-TENANCY
 // ============================================
@@ -344,6 +351,7 @@ export const transactions = pgTable(
     rejection_reason: text('rejection_reason'),
     receipt_number: varchar('receipt_number', { length: 50 }).unique(),
     receipt_pdf_url: varchar('receipt_pdf_url', { length: 500 }),
+    project_id: uuid('project_id'),
     created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   },
@@ -353,6 +361,7 @@ export const transactions = pgTable(
     index('idx_txn_fund').on(table.fund_id),
     index('idx_txn_status').on(table.status),
     index('idx_txn_date').on(table.transaction_date),
+    index('idx_txn_project').on(table.project_id),
   ],
 );
 
@@ -653,7 +662,7 @@ export const conversationStates = pgTable(
       .notNull()
       .references(() => automationFlows.id, { onDelete: 'cascade' }),
     current_step_id: varchar('current_step_id', { length: 100 }),
-    metadata: json('metadata').$type<Record<string, any>>().default({}),
+    metadata: json('metadata').$type<Record<string, unknown>>().default({}),
     expires_at: timestamp('expires_at', { withTimezone: true }),
     created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
@@ -685,13 +694,51 @@ export const projectRoadmap = pgTable(
     completion_percentage: integer('completion_percentage').default(0),
     start_date: date('start_date'),
     target_end_date: date('target_end_date'),
+    // ST-27.4: Project in-charge — FK to persons
+    project_incharge: uuid('project_incharge').references(() => persons.id, {
+      onDelete: 'set null',
+    }),
     notes: text('notes'),
+    closure_date: timestamp('closure_date', { withTimezone: true }),
+    closure_notes: text('closure_notes'),
+    delay_reason: text('delay_reason'),
+    final_cost: decimal('final_cost', { precision: 14, scale: 2 }),
     created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
     index('idx_project_tenant').on(table.tenant_id),
     index('idx_project_phase').on(table.phase),
+    index('idx_project_incharge').on(table.project_incharge),
+  ],
+);
+
+// ST-27.1: Project Milestones — sub-items within a project
+export const projectMilestones = pgTable(
+  'project_milestones',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    tenant_id: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id, { onDelete: 'cascade' }),
+    project_id: uuid('project_id')
+      .notNull()
+      .references(() => projectRoadmap.id, { onDelete: 'cascade' }),
+    milestone_name: varchar('milestone_name', { length: 255 }).notNull(),
+    description: text('description'),
+    target_date: date('target_date'),
+    completion_date: date('completion_date'),
+    completion_percentage: integer('completion_percentage').default(0),
+    status: milestoneStatusEnum('status').notNull().default('Not_Started'),
+    sort_order: integer('sort_order').default(0),
+    created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index('idx_milestone_tenant').on(table.tenant_id),
+    index('idx_milestone_project').on(table.project_id),
+    index('idx_milestone_status').on(table.status),
+    index('idx_milestone_sort').on(table.sort_order),
   ],
 );
 

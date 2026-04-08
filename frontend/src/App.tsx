@@ -48,6 +48,10 @@ import TemplateManagerPage from './pages/communications/templates/TemplateManage
 import TemplateEditorPage from './pages/communications/templates/TemplateEditorPage';
 import { AutomationsPage } from './pages/communications/AutomationsPage';
 import FlowBuilderPage from './pages/communications/FlowBuilderPage';
+import { PublicRoadmapPage } from './pages/PublicRoadmapPage';
+import { AdminProjectsPage } from './pages/AdminProjectsPage';
+import { ProjectDetailPage } from './pages/ProjectDetailPage';
+import { ProjectAnalysisReportPage } from './pages/ProjectAnalysisReportPage';
 
 const theme = createTheme({
   primaryColor: 'green',
@@ -191,6 +195,14 @@ export function App() {
                   element={
                     <ProtectedRoute>
                       <CommunicationsLogsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/broadcasts"
+                  element={
+                    <ProtectedRoute>
+                      <PlaceholderPage />
                     </ProtectedRoute>
                   }
                 />
@@ -359,11 +371,36 @@ export function App() {
                 />
 
                 {/* Projects & Roadmap */}
+                <Route path="/roadmap" element={<PublicRoadmapPage />} />
+                <Route
+                  path="/admin/projects"
+                  element={
+                    <ProtectedRoute requiredRoles={['admin']}>
+                      <AdminProjectsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/projects/analysis"
+                  element={
+                    <ProtectedRoute requiredRoles={['admin']}>
+                      <ProjectAnalysisReportPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/projects/:id"
+                  element={
+                    <ProtectedRoute requiredRoles={['admin']}>
+                      <ProjectDetailPage />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route
                   path="/planning"
                   element={
                     <ProtectedRoute>
-                      <PlaceholderPage />
+                      <AdminProjectsPage />
                     </ProtectedRoute>
                   }
                 />
