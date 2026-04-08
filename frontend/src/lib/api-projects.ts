@@ -202,3 +202,25 @@ export const getProjectFinancialAnalysis = async (): Promise<any[]> => {
   const resp = await api.get('/api/projects/analysis/financials');
   return resp.data.data;
 };
+
+// ─── Closure API (authenticated) ─────────────────────────
+
+export interface CloseProjectPayload {
+  delay_reason?: string;
+  closure_notes?: string;
+}
+
+export const closeProject = async (
+  id: string,
+  payload: CloseProjectPayload,
+): Promise<RoadmapProject> => {
+  const resp = await api.post(`/api/projects/${id}/close`, payload);
+  return resp.data.data;
+};
+
+export const downloadClosureReport = async (id: string): Promise<Blob> => {
+  const resp = await api.get(`/api/projects/${id}/closure-report`, {
+    responseType: 'blob',
+  });
+  return resp.data;
+};

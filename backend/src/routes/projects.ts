@@ -353,6 +353,158 @@ projectsRoute.patch('/:id/phase', async (c) => {
 });
 
 // -------------------------------------------------------
+// POST /api/projects/:id/close — Safely close a project
+// -------------------------------------------------------
+projectsRoute.post('/:id/close', async (c) => {
+  const db = createDb(c.env.DATABASE_URL);
+  const id = c.req.param('id');
+  const tenantId = c.get('tenantId');
+  const body = await c.req.json();
+
+  const { delay_reason, closure_notes } = body;
+
+  // 1. Verify all linked transactions are Approved (no Pending)
+  const pendingTxns = await db
+    .select({ id: transactions.id })
+    .from(transactions)
+    .where(
+      and(
+        eq(transactions.project_id, id),
+        eq(transactions.tenant_id, tenantId),
+        eq(transactions.status, 'Pending'),
+      ),
+    )
+    .limit(1);
+
+  if (pendingTxns.length > 0) {
+    return c.json({ success: false, error: 'Cannot close project with pending transactions' }, 400);
+  }
+
+  // 2. Calculate final cost summing Approved Expense transactions
+  const expenseTxns = await db
+    .select({ total: sql<number>`SUM(amount)` })
+    .from(transactions)
+    .where(
+      and(
+        eq(transactions.project_id, id),
+        eq(transactions.tenant_id, tenantId),
+        eq(transactions.status, 'Approved'),
+        eq(transactions.type, 'Expense'),
+      ),
+    );
+
+  const finalCostStr = expenseTxns[0]?.total?.toString() || '0.00';
+
+  // 3. Set phase = 'Past' and record closure details
+  const result = await db
+    .update(projectRoadmap)
+    .set({
+      phase: 'Past',
+      completion_percentage: 100,
+      closure_date: new Date(),
+      closure_notes: closure_notes ?? null,
+      delay_reason: delay_reason ?? null,
+      final_cost: finalCostStr,
+      updated_at: new Date(),
+    })
+    .where(and(eq(projectRoadmap.id, id), eq(projectRoadmap.tenant_id, tenantId)))
+    .returning();
+
+  if (result.length === 0) {
+    return c.json({ success: false, error: 'Project not found' }, 404);
+  }
+
+  return c.json({ success: true, data: result[0] });
+});
+
+// -------------------------------------------------------
+// GET /api/projects/:id/closure-report
+// -------------------------------------------------------
+projectsRoute.get('/:id/closure-report', async (c) => {
+  const db = createDb(c.env.DATABASE_URL);
+  const id = c.req.param('id');
+  const tenantId = c.get('tenantId');
+
+  // Fetch project basic details
+  const [project] = await db
+    .select()
+    .from(projectRoadmap)
+    .where(and(eq(projectRoadmap.id, id), eq(projectRoadmap.tenant_id, tenantId)))
+    .limit(1);
+
+  if (!project) return c.json({ success: false, error: 'Project not found' }, 404);
+  if (project.phase !== 'Past') {
+    return c.json(
+      { success: false, error: 'Cannot generate closure report for active projects' },
+      400,
+    );
+  }
+
+  const { PDFDocument, StandardFonts, rgb } = await import('pdf-lib');
+  const pdfDoc = await PDFDocument.create();
+  const timesRomanFont = await pdfDoc.embedFont(StandardFonts.TimesRoman);
+  const timesRomanBoldFont = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
+
+  const page = pdfDoc.addPage();
+  const { height } = page.getSize();
+  const fontSize = 12;
+  const padding = 50;
+
+  page.drawText('Project Closure Report', {
+    x: padding,
+    y: height - padding,
+    size: 20,
+    font: timesRomanBoldFont,
+    color: rgb(0, 0, 0),
+  });
+
+  page.drawText(`Project Name: ${project.project_name}`, {
+    x: padding,
+    y: height - padding - 40,
+    size: fontSize,
+    font: timesRomanFont,
+  });
+  page.drawText(
+    `Closure Date: ${project.closure_date ? new Date(project.closure_date as unknown as string).toLocaleDateString() : 'N/A'}`,
+    { x: padding, y: height - padding - 60, size: fontSize, font: timesRomanFont },
+  );
+  page.drawText(`Estimated Budget: ${project.estimated_budget ?? '0'}`, {
+    x: padding,
+    y: height - padding - 80,
+    size: fontSize,
+    font: timesRomanFont,
+  });
+  page.drawText(`Final Cost: ${project.final_cost ?? '0'}`, {
+    x: padding,
+    y: height - padding - 100,
+    size: fontSize,
+    font: timesRomanFont,
+  });
+  page.drawText(`Delay Reason: ${project.delay_reason || 'None'}`, {
+    x: padding,
+    y: height - padding - 120,
+    size: fontSize,
+    font: timesRomanFont,
+  });
+  page.drawText(`Closure Notes: ${project.closure_notes || 'None'}`, {
+    x: padding,
+    y: height - padding - 140,
+    size: fontSize,
+    font: timesRomanFont,
+  });
+
+  const pdfBytes = await pdfDoc.save();
+
+  return new Response(pdfBytes as unknown as BodyInit, {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="closure-report-${project.id}.pdf"`,
+    },
+  });
+});
+
+// -------------------------------------------------------
 // DELETE /api/projects/:id — Delete a project
 // -------------------------------------------------------
 projectsRoute.delete('/:id', async (c) => {

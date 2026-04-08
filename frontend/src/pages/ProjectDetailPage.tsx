@@ -43,6 +43,7 @@ import {
   deleteMilestone,
   ProjectMilestone,
   CreateMilestonePayload,
+  downloadClosureReport,
 } from '../lib/api-projects';
 import { queryClient } from '../lib/api';
 import { ProjectInchargeDisplay } from '../components/roadmap/ProjectInchargeDisplay';
@@ -50,12 +51,15 @@ import { MilestoneTimeline } from '../components/roadmap/MilestoneTimeline';
 import { MilestoneFormModal } from '../components/roadmap/MilestoneFormModal';
 import { MilestoneSortableList } from '../components/roadmap/MilestoneSortableList';
 import { ProjectFinancialsTab } from '../components/roadmap/ProjectFinancialsTab';
+import { ProjectClosureWizard } from '../components/roadmap/ProjectClosureWizard';
 import { formatDateMedium } from '../lib/format-utils';
 
 export function ProjectDetailPage() {
   const { id = '' } = useParams<{ id: string }>();
   const [modalOpened, setModalOpened] = useState(false);
+  const [closureWizardOpened, setClosureWizardOpened] = useState(false);
   const [selectedMilestone, setSelectedMilestone] = useState<ProjectMilestone | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   // ─── Queries ──────────────────────────────────────────
 
@@ -138,6 +142,29 @@ export function ProjectDetailPage() {
     }
   };
 
+  const handleDownloadReport = async () => {
+    try {
+      setIsDownloading(true);
+      const blob = await downloadClosureReport(id);
+      const url = window.URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `closure-report-${id}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      const error = err as { response?: { data?: { error?: string } } };
+      notifications.show({
+        title: 'Download Failed',
+        message: error.response?.data?.error || 'Failed to download report',
+        color: 'red',
+      });
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   // ─── UI ───────────────────────────────────────────────
 
   if (isProjectLoading) {
@@ -188,9 +215,20 @@ export function ProjectDetailPage() {
               >
                 Back to List
               </Button>
-              <Button leftSection={<IconPlus size={16} />} onClick={handleCreateClick}>
-                Add Milestone
-              </Button>
+              {project.phase === 'Past' ? (
+                <Button color="teal" loading={isDownloading} onClick={handleDownloadReport}>
+                  Download Closure Report
+                </Button>
+              ) : (
+                <>
+                  <Button color="red" variant="light" onClick={() => setClosureWizardOpened(true)}>
+                    Close Project
+                  </Button>
+                  <Button leftSection={<IconPlus size={16} />} onClick={handleCreateClick}>
+                    Add Milestone
+                  </Button>
+                </>
+              )}
             </Group>
           </Group>
         </Stack>
@@ -324,6 +362,13 @@ export function ProjectDetailPage() {
           milestone={selectedMilestone}
           onSubmit={handleSubmit}
           isLoading={createMutation.isPending || updateMutation.isPending}
+        />
+
+        {/* Closure Wizard */}
+        <ProjectClosureWizard
+          projectId={id}
+          opened={closureWizardOpened}
+          onClose={() => setClosureWizardOpened(false)}
         />
       </Stack>
     </Container>
