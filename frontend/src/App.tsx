@@ -52,6 +52,7 @@ import { PublicRoadmapPage } from './pages/PublicRoadmapPage';
 import { AdminProjectsPage } from './pages/AdminProjectsPage';
 import { ProjectDetailPage } from './pages/ProjectDetailPage';
 import { ProjectAnalysisReportPage } from './pages/ProjectAnalysisReportPage';
+import BroadcastPage from './pages/BroadcastPage';
 
 const theme = createTheme({
   primaryColor: 'green',
@@ -202,7 +203,8 @@ export function App() {
                   path="/broadcasts"
                   element={
                     <ProtectedRoute>
-                      <PlaceholderPage />
+                      {/* <PlaceholderPage /> */}
+                      <BroadcastPage />
                     </ProtectedRoute>
                   }
                 />
