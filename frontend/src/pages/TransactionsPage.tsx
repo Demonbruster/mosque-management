@@ -36,7 +36,7 @@ export function TransactionsPage() {
   };
 
   const formatCurrency = (amount: string, currency: string) => {
-    return new Intl.NumberFormat('en-IN', {
+    return new Intl.NumberFormat(currency === 'INR' ? 'en-IN' : 'en-US', {
       style: 'currency',
       currency: currency || 'INR',
     }).format(Number(amount));

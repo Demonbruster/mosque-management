@@ -18,6 +18,8 @@ import { DatePickerInput } from '@mantine/dates';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { api } from '../lib/api';
+import { useTenant } from '../lib/tenant-context';
+import { getCurrencySymbol } from '../lib/format-utils';
 
 export function NewTransactionPage() {
   const navigate = useNavigate();
@@ -57,10 +59,15 @@ export function NewTransactionPage() {
     },
   });
 
+  const { tenant } = useTenant();
+  const currentCurrency = tenant?.currency || 'INR';
+  const currencySymbol = getCurrencySymbol(currentCurrency);
+
   const createMutation = useMutation({
     mutationFn: async (values: typeof form.values) => {
       const payload = {
         ...values,
+        currency: currentCurrency,
         transaction_date: values.transaction_date.toISOString(),
       };
       const res = await api.post('/api/transactions', payload);
@@ -124,10 +131,10 @@ export function NewTransactionPage() {
 
             <Group grow align="flex-start">
               <NumberInput
-                label="Amount (INR)"
+                label={`Amount (${currentCurrency})`}
                 placeholder="0.00"
                 min={0}
-                prefix="₹ "
+                prefix={`${currencySymbol} `}
                 decimalScale={2}
                 hideControls
                 required

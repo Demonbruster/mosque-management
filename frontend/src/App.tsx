@@ -52,6 +52,8 @@ import { PublicRoadmapPage } from './pages/PublicRoadmapPage';
 import { AdminProjectsPage } from './pages/AdminProjectsPage';
 import { ProjectDetailPage } from './pages/ProjectDetailPage';
 import { ProjectAnalysisReportPage } from './pages/ProjectAnalysisReportPage';
+import { TenantProvider } from './lib/tenant-context';
+import { MosqueSettingsPage } from './pages/admin/MosqueSettingsPage';
 
 const theme = createTheme({
   primaryColor: 'green',
@@ -79,418 +81,428 @@ export function App() {
       <Notifications position="top-right" zIndex={1000} />
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route element={<Layout />}>
-                <Route path="/" element={<DashboardPage />} />
-                <Route path="/login" element={<LoginPage />} />
+          <TenantProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route element={<Layout />}>
+                  <Route path="/" element={<DashboardPage />} />
+                  <Route path="/login" element={<LoginPage />} />
 
-                {/* CRM Routes - Accessible by all logged in users */}
-                <Route
-                  path="/members"
-                  element={
-                    <ProtectedRoute>
-                      <MembersPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/members/:id"
-                  element={
-                    <ProtectedRoute>
-                      <MemberDetailPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/households"
-                  element={
-                    <ProtectedRoute>
-                      <HouseholdsPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/households/:id"
-                  element={
-                    <ProtectedRoute>
-                      <HouseholdDetailPage />
-                    </ProtectedRoute>
-                  }
-                />
+                  {/* CRM Routes - Accessible by all logged in users */}
+                  <Route
+                    path="/members"
+                    element={
+                      <ProtectedRoute>
+                        <MembersPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/members/:id"
+                    element={
+                      <ProtectedRoute>
+                        <MemberDetailPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/households"
+                    element={
+                      <ProtectedRoute>
+                        <HouseholdsPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/households/:id"
+                    element={
+                      <ProtectedRoute>
+                        <HouseholdDetailPage />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                <Route
-                  path="/admin/users"
-                  element={
-                    <ProtectedRoute requiredRoles={['admin']}>
-                      <AdminUsersPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/tags"
-                  element={
-                    <ProtectedRoute requiredRoles={['admin']}>
-                      <TagManagerPage />
-                    </ProtectedRoute>
-                  }
-                />
+                  <Route
+                    path="/admin/users"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin']}>
+                        <AdminUsersPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/tags"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin']}>
+                        <TagManagerPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/settings"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin']}>
+                        <MosqueSettingsPage />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                {/* --- Navigation Placeholder Routes --- */}
-                {/* Community & CRM */}
-                <Route
-                  path="/mahallas"
-                  element={
-                    <ProtectedRoute>
-                      <PlaceholderPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/deduplication"
-                  element={
-                    <ProtectedRoute>
-                      <PlaceholderPage />
-                    </ProtectedRoute>
-                  }
-                />
+                  {/* --- Navigation Placeholder Routes --- */}
+                  {/* Community & CRM */}
+                  <Route
+                    path="/mahallas"
+                    element={
+                      <ProtectedRoute>
+                        <PlaceholderPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/deduplication"
+                    element={
+                      <ProtectedRoute>
+                        <PlaceholderPage />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                {/* Finance & Accounting */}
-                <Route
-                  path="/finance"
-                  element={
-                    <ProtectedRoute>
-                      <TransactionsPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/finance/new"
-                  element={
-                    <ProtectedRoute>
-                      <NewTransactionPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/approvals"
-                  element={
-                    <ProtectedRoute>
-                      <ApprovalQueuePage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/receipts"
-                  element={
-                    <ProtectedRoute>
-                      <PlaceholderPage />
-                    </ProtectedRoute>
-                  }
-                />
+                  {/* Finance & Accounting */}
+                  <Route
+                    path="/finance"
+                    element={
+                      <ProtectedRoute>
+                        <TransactionsPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/finance/new"
+                    element={
+                      <ProtectedRoute>
+                        <NewTransactionPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/approvals"
+                    element={
+                      <ProtectedRoute>
+                        <ApprovalQueuePage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/receipts"
+                    element={
+                      <ProtectedRoute>
+                        <PlaceholderPage />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                {/* Communications */}
-                <Route
-                  path="/communications/logs"
-                  element={
-                    <ProtectedRoute>
-                      <CommunicationsLogsPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/broadcasts"
-                  element={
-                    <ProtectedRoute>
-                      <PlaceholderPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/communications/broadcast"
-                  element={
-                    <ProtectedRoute>
-                      <BroadcastCampaignPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/communications/campaigns"
-                  element={
-                    <ProtectedRoute>
-                      <CampaignHistoryPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/audiences"
-                  element={
-                    <ProtectedRoute>
-                      <PlaceholderPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/communications/templates"
-                  element={
-                    <ProtectedRoute requiredRoles={['admin']}>
-                      <TemplateManagerPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/communications/automations"
-                  element={
-                    <ProtectedRoute requiredRoles={['admin']}>
-                      <AutomationsPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/communications/automations/:id"
-                  element={
-                    <ProtectedRoute requiredRoles={['admin']}>
-                      <FlowBuilderPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/communications/templates/:id"
-                  element={
-                    <ProtectedRoute requiredRoles={['admin']}>
-                      <TemplateEditorPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/templates"
-                  element={
-                    <ProtectedRoute requiredRoles={['admin']}>
-                      <TemplateManagerPage />
-                    </ProtectedRoute>
-                  }
-                />
+                  {/* Communications */}
+                  <Route
+                    path="/communications/logs"
+                    element={
+                      <ProtectedRoute>
+                        <CommunicationsLogsPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/broadcasts"
+                    element={
+                      <ProtectedRoute>
+                        <PlaceholderPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/communications/broadcast"
+                    element={
+                      <ProtectedRoute>
+                        <BroadcastCampaignPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/communications/campaigns"
+                    element={
+                      <ProtectedRoute>
+                        <CampaignHistoryPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/audiences"
+                    element={
+                      <ProtectedRoute>
+                        <PlaceholderPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/communications/templates"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin']}>
+                        <TemplateManagerPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/communications/automations"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin']}>
+                        <AutomationsPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/communications/automations/:id"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin']}>
+                        <FlowBuilderPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/communications/templates/:id"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin']}>
+                        <TemplateEditorPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/templates"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin']}>
+                        <TemplateManagerPage />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                {/* Operations & Assets */}
-                <Route
-                  path="/assets"
-                  element={
-                    <ProtectedRoute>
-                      <AssetsPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/assets/:id"
-                  element={
-                    <ProtectedRoute>
-                      <AssetDetailPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/tenancy"
-                  element={
-                    <ProtectedRoute>
-                      <TenancyListPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/tenancy/rent-due"
-                  element={
-                    <ProtectedRoute>
-                      <RentDueReportPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/tenancy/:id"
-                  element={
-                    <ProtectedRoute>
-                      <TenancyDetailPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/rentals"
-                  element={
-                    <ProtectedRoute>
-                      <UtensilRentalsPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/utensils"
-                  element={
-                    <ProtectedRoute>
-                      <UtensilInventoryPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/utensil-rentals/:id/voucher"
-                  element={
-                    <ProtectedRoute>
-                      <UtensilVoucherPage />
-                    </ProtectedRoute>
-                  }
-                />
+                  {/* Operations & Assets */}
+                  <Route
+                    path="/assets"
+                    element={
+                      <ProtectedRoute>
+                        <AssetsPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/assets/:id"
+                    element={
+                      <ProtectedRoute>
+                        <AssetDetailPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/tenancy"
+                    element={
+                      <ProtectedRoute>
+                        <TenancyListPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/tenancy/rent-due"
+                    element={
+                      <ProtectedRoute>
+                        <RentDueReportPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/tenancy/:id"
+                    element={
+                      <ProtectedRoute>
+                        <TenancyDetailPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/rentals"
+                    element={
+                      <ProtectedRoute>
+                        <UtensilRentalsPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/utensils"
+                    element={
+                      <ProtectedRoute>
+                        <UtensilInventoryPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/utensil-rentals/:id/voucher"
+                    element={
+                      <ProtectedRoute>
+                        <UtensilVoucherPage />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                <Route
-                  path="/life-events"
-                  element={
-                    <ProtectedRoute>
-                      <LifeEventsPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/life-events/new"
-                  element={
-                    <ProtectedRoute>
-                      <LifeEventFormPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/life-events/:id"
-                  element={
-                    <ProtectedRoute>
-                      <LifeEventDetailPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/life-events/:id/certificate"
-                  element={
-                    <ProtectedRoute>
-                      <CertificatePreviewPage />
-                    </ProtectedRoute>
-                  }
-                />
+                  <Route
+                    path="/life-events"
+                    element={
+                      <ProtectedRoute>
+                        <LifeEventsPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/life-events/new"
+                    element={
+                      <ProtectedRoute>
+                        <LifeEventFormPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/life-events/:id"
+                    element={
+                      <ProtectedRoute>
+                        <LifeEventDetailPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/life-events/:id/certificate"
+                    element={
+                      <ProtectedRoute>
+                        <CertificatePreviewPage />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                {/* Projects & Roadmap */}
-                <Route path="/roadmap" element={<PublicRoadmapPage />} />
-                <Route
-                  path="/admin/projects"
-                  element={
-                    <ProtectedRoute requiredRoles={['admin']}>
-                      <AdminProjectsPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/projects/analysis"
-                  element={
-                    <ProtectedRoute requiredRoles={['admin']}>
-                      <ProjectAnalysisReportPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/projects/:id"
-                  element={
-                    <ProtectedRoute requiredRoles={['admin']}>
-                      <ProjectDetailPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/planning"
-                  element={
-                    <ProtectedRoute>
-                      <AdminProjectsPage />
-                    </ProtectedRoute>
-                  }
-                />
+                  {/* Projects & Roadmap */}
+                  <Route path="/roadmap" element={<PublicRoadmapPage />} />
+                  <Route
+                    path="/admin/projects"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin']}>
+                        <AdminProjectsPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/projects/analysis"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin']}>
+                        <ProjectAnalysisReportPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/projects/:id"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin']}>
+                        <ProjectDetailPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/planning"
+                    element={
+                      <ProtectedRoute>
+                        <AdminProjectsPage />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                {/* HR & Governance */}
-                <Route
-                  path="/staff"
-                  element={
-                    <ProtectedRoute>
-                      <PlaceholderPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/meetings"
-                  element={
-                    <ProtectedRoute>
-                      <MeetingsPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/meetings/:id"
-                  element={
-                    <ProtectedRoute>
-                      <MeetingDetailPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/committees"
-                  element={
-                    <ProtectedRoute>
-                      <PlaceholderPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/panchayath"
-                  element={
-                    <ProtectedRoute>
-                      <PanchayathCasesPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/panchayath/:id"
-                  element={
-                    <ProtectedRoute>
-                      <CaseDetailPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/madrasa"
-                  element={
-                    <ProtectedRoute>
-                      <PlaceholderPage />
-                    </ProtectedRoute>
-                  }
-                />
+                  {/* HR & Governance */}
+                  <Route
+                    path="/staff"
+                    element={
+                      <ProtectedRoute>
+                        <PlaceholderPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/meetings"
+                    element={
+                      <ProtectedRoute>
+                        <MeetingsPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/meetings/:id"
+                    element={
+                      <ProtectedRoute>
+                        <MeetingDetailPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/committees"
+                    element={
+                      <ProtectedRoute>
+                        <PlaceholderPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/panchayath"
+                    element={
+                      <ProtectedRoute>
+                        <PanchayathCasesPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/panchayath/:id"
+                    element={
+                      <ProtectedRoute>
+                        <CaseDetailPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/madrasa"
+                    element={
+                      <ProtectedRoute>
+                        <PlaceholderPage />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                {/* System Settings (Admin only) */}
-                <Route
-                  path="/integrations"
-                  element={
-                    <ProtectedRoute requiredRoles={['admin']}>
-                      <PlaceholderPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/fund-categories"
-                  element={
-                    <ProtectedRoute requiredRoles={['admin']}>
-                      <FundCategoriesPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/audit-logs"
-                  element={
-                    <ProtectedRoute requiredRoles={['admin']}>
-                      <PlaceholderPage />
-                    </ProtectedRoute>
-                  }
-                />
-              </Route>
-            </Routes>
-          </BrowserRouter>
+                  {/* System Settings (Admin only) */}
+                  <Route
+                    path="/integrations"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin']}>
+                        <PlaceholderPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/fund-categories"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin']}>
+                        <FundCategoriesPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/audit-logs"
+                    element={
+                      <ProtectedRoute requiredRoles={['admin']}>
+                        <PlaceholderPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                </Route>
+              </Routes>
+            </BrowserRouter>
+          </TenantProvider>
         </AuthProvider>
       </QueryClientProvider>
     </MantineProvider>

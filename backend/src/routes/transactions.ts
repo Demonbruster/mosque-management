@@ -125,6 +125,7 @@ transactionsRoute.post('/', requireRole('admin', 'imam', 'treasurer'), async (c)
       notes: body.notes || null,
       reference_number: body.reference_number || null,
       project_id: body.project_id || null, // ST-28.1
+      currency: body.currency || 'INR', // Added currency support
       transaction_date: body.transaction_date ? new Date(body.transaction_date) : new Date(),
       status: 'Pending',
     })

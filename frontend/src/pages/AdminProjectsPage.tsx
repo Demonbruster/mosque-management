@@ -52,9 +52,12 @@ import {
 import { queryClient } from '../lib/api';
 import { notifications } from '@mantine/notifications';
 import { ProjectFormModal } from '../components/roadmap/ProjectFormModal';
-import { formatINR, formatDateShort } from '../lib/format-utils';
+import { formatCurrency, formatDateShort } from '../lib/format-utils';
+import { useTenant } from '../lib/tenant-context';
 
 export function AdminProjectsPage() {
+  const { tenant } = useTenant();
+  const currency = tenant?.currency || 'INR';
   const navigate = useNavigate();
   const [phase, setPhase] = useState<ProjectPhase | 'all'>('all');
   const [modalOpened, setModalOpened] = useState(false);
@@ -264,10 +267,10 @@ export function AdminProjectsPage() {
                       <Table.Td>
                         <Stack gap={0}>
                           <Text size="sm" fw={500}>
-                            {budget > 0 ? formatINR(budget) : '—'}
+                            {budget > 0 ? formatCurrency(budget, currency) : '—'}
                           </Text>
                           <Text size="xs" c="dimmed">
-                            Spent: {spent > 0 ? formatINR(spent) : '—'}
+                            Spent: {spent > 0 ? formatCurrency(spent, currency) : '—'}
                           </Text>
                         </Stack>
                       </Table.Td>

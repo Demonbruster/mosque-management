@@ -178,6 +178,7 @@ export const tenants = pgTable('tenants', {
   name: varchar('name', { length: 255 }).notNull(),
   slug: varchar('slug', { length: 100 }).notNull().unique(),
   domain: varchar('domain', { length: 255 }),
+  currency: varchar('currency', { length: 3 }).default('INR').notNull(),
   is_active: boolean('is_active').default(true).notNull(),
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),

@@ -5,15 +5,56 @@
 // Avoids duplication of formatINR / formatDate etc.
 // ============================================
 
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  INR: '₹',
+  USD: '$',
+  EUR: '€',
+  GBP: '£',
+  AED: 'د.إ',
+  SAR: 'ر.س',
+  CAD: 'C$',
+  AUD: 'A$',
+  JPY: '¥',
+};
+
 /**
- * Format a number as a compacted INR currency string.
- * Examples: 500 → ₹500, 15000 → ₹15.0K, 350000 → ₹3.5L, 12000000 → ₹1.2Cr
+ * Format a number as a currency string based on the provided currency code.
+ * Supports short formatting (K, L, Cr for INR; K, M, B for others).
+ */
+export function formatCurrency(value: number, currencyCode: string = 'INR'): string {
+  const symbol = CURRENCY_SYMBOLS[currencyCode] || currencyCode;
+
+  if (currencyCode === 'INR') {
+    if (value >= 10000000) return `${symbol}${(value / 10000000).toFixed(1)}Cr`;
+    if (value >= 100000) return `${symbol}${(value / 100000).toFixed(1)}L`;
+    if (value >= 1000) return `${symbol}${(value / 1000).toFixed(1)}K`;
+    return `${symbol}${value.toLocaleString('en-IN')}`;
+  }
+
+  // Western formatting (K, M, B)
+  if (value >= 1000000000) return `${symbol}${(value / 1000000000).toFixed(1)}B`;
+  if (value >= 1000000) return `${symbol}${(value / 1000000).toFixed(1)}M`;
+  if (value >= 1000) return `${symbol}${(value / 1000).toFixed(1)}K`;
+
+  return `${symbol}${value.toLocaleString(currencyCode === 'USD' ? 'en-US' : undefined, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+/**
+ * Get the symbol for a currency code.
+ */
+export function getCurrencySymbol(currencyCode: string = 'INR'): string {
+  return CURRENCY_SYMBOLS[currencyCode] || currencyCode;
+}
+
+/**
+ * Backward compatibility for formatINR
+ * @deprecated Use formatCurrency instead
  */
 export function formatINR(value: number): string {
-  if (value >= 10000000) return `₹${(value / 10000000).toFixed(1)}Cr`;
-  if (value >= 100000) return `₹${(value / 100000).toFixed(1)}L`;
-  if (value >= 1000) return `₹${(value / 1000).toFixed(1)}K`;
-  return `₹${value.toLocaleString('en-IN')}`;
+  return formatCurrency(value, 'INR');
 }
 
 /**

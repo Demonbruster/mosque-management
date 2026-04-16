@@ -30,6 +30,7 @@ publicTenantsRoute.get('/resolve', async (c) => {
       name: tenants.name,
       slug: tenants.slug,
       domain: tenants.domain,
+      currency: tenants.currency,
     })
     .from(tenants)
     .where(

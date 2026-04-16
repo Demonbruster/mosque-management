@@ -136,6 +136,7 @@ export function Layout() {
       auth: true,
       roles: ['admin'],
       links: [
+        { label: 'Mosque Settings', path: '/admin/settings', icon: IconSettings },
         { label: 'Admin Users', path: '/admin/users', icon: IconSettings },
         { label: 'Fund Categories', path: '/admin/fund-categories', icon: IconBook },
         { label: 'Integrations', path: '/integrations', icon: IconPlugConnected },

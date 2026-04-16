@@ -86,4 +86,34 @@ tenantsRoute.post('/', async (c) => {
   }
 });
 
+// PATCH /api/tenants/:id — Update tenant details
+tenantsRoute.patch('/:id', async (c) => {
+  const db = createDb(c.env.DATABASE_URL);
+  const id = c.req.param('id');
+  const body = await c.req.json();
+
+  try {
+    const [updatedTenant] = await db
+      .update(tenants)
+      .set({
+        ...body,
+        updated_at: new Date(),
+      })
+      .where(eq(tenants.id, id))
+      .returning();
+
+    if (!updatedTenant) {
+      return c.json({ success: false, error: 'Tenant not found' }, 404);
+    }
+
+    return c.json({ success: true, data: updatedTenant });
+  } catch (error) {
+    const e = error as { code?: string };
+    if (e.code === '23505') {
+      return c.json({ success: false, error: 'Slug or domain already in use' }, 409);
+    }
+    throw error;
+  }
+});
+
 export default tenantsRoute;
